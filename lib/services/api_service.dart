@@ -2,7 +2,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://localhost:7123';
+  //static const String baseUrl = 'https://localhost:7123';
+  // Si no se pasa la variable en compilación, usamos una URL de emergencia (producción)
+  // para evitar que la app compile apuntando a localhost por error.
+  static const String baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'https://api.appcheck.com.mx', 
+  );
   static String? _token;
 
   static void setToken(String token) => _token = token;

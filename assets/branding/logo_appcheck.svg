@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <!-- Círculo de fondo -->
+  <circle cx="100" cy="100" r="90" fill="#0F766E" />
+  
+  <!-- Check estilizado -->
+  <path d="M 50 100 L 85 135 L 150 60" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  
+  <!-- Manecilla de reloj (Naranja) -->
+  <circle cx="85" cy="135" r="15" fill="#F59E0B" />
+</svg>
