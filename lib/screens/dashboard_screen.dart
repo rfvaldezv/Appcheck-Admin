@@ -404,6 +404,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 children: [
                                   _chipEstado(kiosko['estadoLicencia'] ?? 'Desconocido'),
                                   const SizedBox(width: 8),
+                                  if (kiosko['estadoLicencia'] == 'Pendiente' || kiosko['estadoLicencia'] == 'Suspendido')
+                                    IconButton(
+                                      icon: const Icon(Icons.vpn_key, color: Colors.purple),
+                                      tooltip: 'Regenerar código de activación',
+                                      onPressed: () => _mostrarDialogoRegenerarCodigo(kiosko),
+                                    ),
                                   IconButton(
                                     icon: const Icon(Icons.edit, color: Colors.blue),
                                     tooltip: 'Editar kiosko',
@@ -1094,15 +1100,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const Text('Pásale este código al dispositivo. Expira en 72 horas.', textAlign: TextAlign.center, style: TextStyle(color: Colors.black54)),
                         const SizedBox(height: 24),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: const Color(0xFF0F766E).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: const Color(0xFF0F766E), width: 2),
                           ),
-                          child: SelectableText(
-                            codigoGenerado!,
-                            style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 4, color: Color(0xFF0F766E)),
+                          child: Column(
+                            children: [
+                              SelectableText(
+                                codigoGenerado!,
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 4, color: Color(0xFF0F766E)),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Kiosko: ${nombreController.text}',
+                                style: const TextStyle(fontSize: 14, color: Colors.black54),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -1116,6 +1131,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       try {
                         final response = await ApiService.generarCodigoKiosko(nombre: nombreController.text.trim(), tipo: tipoSeleccionado);
                         setStateDialog(() => codigoGenerado = response['codigo'] as String);
+                        await _cargarKioskos(); // 👈 Refrescar la lista de kioskos
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
@@ -1794,6 +1810,106 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _mostrarDialogoRegenerarCodigo(Map<String, dynamic> kiosko) async {
+    String? codigoGenerado;
+    bool generando = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: const Text('Regenerar Código de Activación'),
+              content: codigoGenerado == null
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Se generará un nuevo código para el kiosko:\n${kiosko['nombre']}',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'El código anterior quedará inválido.',
+                          style: TextStyle(color: Colors.black54, fontSize: 12),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.green, size: 64),
+                        const SizedBox(height: 16),
+                        const Text('¡Código regenerado!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        const Text('Pásale este código al dispositivo. Expira en 72 horas.', textAlign: TextAlign.center, style: TextStyle(color: Colors.black54)),
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFF0F766E), width: 2),
+                          ),
+                          child: Column(
+                            children: [
+                              SelectableText(
+                                codigoGenerado!,
+                                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 4, color: Color(0xFF0F766E)),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Kiosko: ${kiosko['nombre']}',
+                                style: const TextStyle(fontSize: 14, color: Colors.black54),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+              actions: [
+                if (codigoGenerado == null) ...[
+                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                  ElevatedButton(
+                    onPressed: generando ? null : () async {
+                      setStateDialog(() => generando = true);
+                      try {
+                        final response = await ApiService.regenerarCodigoKiosko(kiosko['puntoLecturaId']);
+                        setStateDialog(() {
+                          codigoGenerado = response['codigo'] as String;
+                          generando = false;
+                        });
+                      } catch (e) {
+                        setStateDialog(() => generando = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                    child: generando
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Text('Regenerar', style: TextStyle(color: Colors.white)),
+                  ),
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
+                    child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

@@ -248,4 +248,14 @@ class ApiService {
     if (response.statusCode == 200) return jsonDecode(response.body);
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al obtener comisiones');
   }
+
+  // 20. Kioskos: Regenerar código de activación
+  static Future<Map<String, dynamic>> regenerarCodigoKiosko(String puntoLecturaId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/kiosko/$puntoLecturaId/regenerar-codigo'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al regenerar código');
+  }
 }
