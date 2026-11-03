@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:universal_html/html.dart' as html;
 import '../services/api_service.dart';
 import 'login_screen.dart';
 
@@ -23,10 +25,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _empleados = [];
   bool _cargandoEmpleados = false;
 
+  Map<String, dynamic>? _suscripcionActual;
+  bool _cargandoSuscripcion = false;
+
+  List<dynamic> _facturas = [];
+  bool _cargandoFacturas = false;
+
+  DateTime _fechaInicio = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _fechaFin = DateTime.now();
+  bool _cargandoReporte = false;
+  Map<String, dynamic>? _reporteActual;
+
   @override
   void initState() {
     super.initState();
     _cargarDatos();
+    _cargarFacturas();
   }
 
   Future<void> _cargarDatos() async {
@@ -77,6 +91,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() => _error = e.toString());
     } finally {
       if (mounted) setState(() => _cargandoEmpleados = false);
+    }
+  }
+
+  Future<void> _cargarSuscripcion() async {
+    setState(() => _cargandoSuscripcion = true);
+    try {
+      final suscripcion = await ApiService.miSuscripcion();
+      if (!mounted) return;
+      setState(() => _suscripcionActual = suscripcion);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _cargandoSuscripcion = false);
+    }
+  }
+
+  Future<void> _cargarFacturas() async {
+    setState(() => _cargandoFacturas = true);
+    try {
+      final facturas = await ApiService.listarFacturas();
+      if (!mounted) return;
+      setState(() => _facturas = facturas);
+    } catch (e) {
+      // Silencioso
+    } finally {
+      if (mounted) setState(() => _cargandoFacturas = false);
     }
   }
 
@@ -132,6 +175,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _menuItem(1, Icons.devices, 'Kioskos'),
           _menuItem(2, Icons.people, 'Empleados'),
           _menuItem(3, Icons.file_download, 'Reportes STPS'),
+          _menuItem(4, Icons.receipt_long, 'Mi Suscripción'),
+          _menuItem(5, Icons.fact_check, 'Facturas'),
           const Spacer(),
           const Divider(color: Colors.white24),
           ListTile(
@@ -197,6 +242,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 1: return 'Gestión de Kioskos';
       case 2: return 'Gestión de Empleados';
       case 3: return 'Reportes STPS';
+      case 4: return 'Mi Suscripción';
+      case 5: return 'Facturas';
       default: return 'Dashboard';
     }
   }
@@ -207,6 +254,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 1: return _buildKioskos();
       case 2: return _buildEmpleados();
       case 3: return _buildReportes();
+      case 4: return _buildMiSuscripcion();
+      case 5: return _buildFacturas();
       default: return const SizedBox();
     }
   }
@@ -461,11 +510,453 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  // =====================================================
+  // VISTA 4: REPORTES STPS
+  // =====================================================
+  Widget _buildReportes() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Reportes de Jornada (STPS)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          const Text(
+            'Selecciona el periodo y descarga el reporte para tu cumplimiento legal.',
+            style: TextStyle(color: Colors.black54),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Fecha de inicio', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _fechaInicio,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) setState(() => _fechaInicio = picked);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${_fechaInicio.day}/${_fechaInicio.month}/${_fechaInicio.year}'),
+                              const Icon(Icons.calendar_today, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Fecha de fin', style: TextStyle(fontSize: 12, color: Colors.black54)),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _fechaFin,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) setState(() => _fechaFin = picked);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.shade300),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${_fechaFin.day}/${_fechaFin.month}/${_fechaFin.year}'),
+                              const Icon(Icons.calendar_today, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Padding(
+                  padding: const EdgeInsets.only(top: 20),
+                  child: ElevatedButton.icon(
+                    onPressed: _cargandoReporte ? null : _generarReporte,
+                    icon: _cargandoReporte
+                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(Icons.search),
+                    label: Text(_cargandoReporte ? 'Generando...' : 'Generar Reporte'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F766E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          Expanded(
+            child: _reporteActual == null
+                ? const Center(
+                    child: Text(
+                      'Selecciona un rango de fechas y presiona "Generar Reporte".',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  )
+                : _reporteActual!['registros'].isEmpty
+                    ? const Center(child: Text('No hay registros en el periodo seleccionado.'))
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Total: ${_reporteActual!['totalRegistros']} registros',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: _exportarCSV,
+                                icon: const Icon(Icons.download),
+                                label: const Text('Descargar CSV'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green.shade700,
+                                  foregroundColor: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                              ),
+                              child: ListView.separated(
+                                itemCount: _reporteActual!['registros'].length,
+                                separatorBuilder: (_, _) => const Divider(height: 1),
+                                itemBuilder: (context, index) {
+                                  final r = _reporteActual!['registros'][index];
+                                  return ListTile(
+                                    leading: Icon(
+                                      r['tipoChecada'] == 'Entrada' ? Icons.login : Icons.logout,
+                                      color: r['tipoChecada'] == 'Entrada' ? Colors.green : Colors.orange,
+                                    ),
+                                    title: Text('${r['empleado']} (${r['numeroEmpleado']})'),
+                                    subtitle: Text('${r['tipoChecada']} • ${r['metodoUsado']} • ${r['puntoLectura']}'),
+                                    trailing: Text(
+                                      _formatearFecha(DateTime.parse(r['timestampServidor'])),
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // =====================================================
+  // VISTA 5: MI SUSCRIPCIÓN
+  // =====================================================
+  Widget _buildMiSuscripcion() {
+    if (_suscripcionActual == null && !_cargandoSuscripcion) {
+      _cargarSuscripcion();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Mi Suscripción', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          const Text(
+            'Información de tu plan actual y límites contratados.',
+            style: TextStyle(color: Colors.black54),
+          ),
+          const SizedBox(height: 24),
+          if (_cargandoSuscripcion)
+            const Center(child: CircularProgressIndicator())
+          else if (_suscripcionActual == null || _suscripcionActual!['plan'] == null)
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Column(
+                children: [
+                  Icon(Icons.warning_amber, size: 64, color: Colors.orange),
+                  SizedBox(height: 16),
+                  Text(
+                    'No tienes una suscripción activa.',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Contacta al SuperAdmin para asignar un plan a tu cuenta.',
+                    style: TextStyle(color: Colors.black54),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.verified, color: Colors.green, size: 32),
+                      const SizedBox(width: 12),
+                      Text(
+                        _suscripcionActual!['plan']['nombre'] ?? 'Sin plan',
+                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 32),
+                  _infoRow('Precio base', '\$${_suscripcionActual!['plan']['precioBase']} MXN/mes'),
+                  _infoRow('Límite de empleados', '${_suscripcionActual!['plan']['limiteEmpleados']} empleados'),
+                  _infoRow('Límite de kioskos', '${_suscripcionActual!['plan']['limiteKioskos']} kioskos'),
+                  _infoRow('Fecha de inicio', _suscripcionActual!['fechaInicio'].toString().substring(0, 10)),
+                  _infoRow('Estado', _suscripcionActual!['estado'] ?? 'Activa'),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(color: Colors.black54)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  // =====================================================
+  // VISTA 6: FACTURAS
+  // =====================================================
+  Widget _buildFacturas() {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Facturas', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ElevatedButton.icon(
+                onPressed: _cargandoFacturas ? null : _generarFacturaDelMes,
+                icon: _cargandoFacturas
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Icon(Icons.receipt),
+                label: Text(_cargandoFacturas ? 'Generando...' : 'Generar Factura del Mes'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F766E),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: _cargandoFacturas
+                ? const Center(child: CircularProgressIndicator())
+                : _facturas.isEmpty
+                    ? const Center(
+                        child: Text(
+                          'No hay facturas generadas.\nPresiona "Generar Factura del Mes" para crear la primera.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.black54, fontSize: 16),
+                        ),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                        ),
+                        child: ListView.separated(
+                          itemCount: _facturas.length,
+                          separatorBuilder: (_, _) => const Divider(height: 1),
+                          itemBuilder: (context, index) {
+                            final factura = _facturas[index];
+                            final periodo = DateTime.parse(factura['periodoInicio']);
+                            final mesAnio = '${periodo.month.toString().padLeft(2, '0')}/${periodo.year}';
+                            return ListTile(
+                              leading: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.receipt, color: Color(0xFF0F766E)),
+                              ),
+                              title: Text(
+                                'Factura $mesAnio',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              subtitle: Text(
+                                'Subtotal: \$${factura['subtotal']} + IVA: \$${factura['iva']}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _chipEstado(factura['estado'] ?? 'Emitida'),
+                                  const SizedBox(width: 16),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        '\$${factura['total']}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                      ),
+                                      Text(
+                                        _formatearFecha(DateTime.parse(factura['fechaEmision'])),
+                                        style: const TextStyle(fontSize: 10, color: Colors.black54),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(width: 8),
+                                  PopupMenuButton<String>(
+                                    onSelected: (value) async {
+                                      if (value == 'pdf') {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Generación de PDF pendiente de implementar (CFDI 4.0)')),
+                                        );
+                                      } else if (value == 'pagar') {
+                                        await _marcarFacturaPagada(factura['facturaId']);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      const PopupMenuItem(
+                                        value: 'pdf',
+                                        child: Text('Descargar PDF'),
+                                      ),
+                                      if (factura['estado'] == 'Emitida')
+                                        const PopupMenuItem(
+                                          value: 'pagar',
+                                          child: Text('Marcar como Pagada'),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _generarFacturaDelMes() async {
+    setState(() => _cargandoFacturas = true);
+    try {
+      final response = await ApiService.generarFactura();
+      await _cargarFacturas();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Factura generada: ${response['periodo']} - Total: \$${response['total']}'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _cargandoFacturas = false);
+    }
+  }
+
+  Future<void> _marcarFacturaPagada(String facturaId) async {
+    try {
+      await ApiService.marcarFacturaPagada(facturaId);
+      await _cargarFacturas();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Factura marcada como pagada'), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  // =====================================================
+  // MÉTODOS AUXILIARES
+  // =====================================================
   Widget _chipEstado(String estado) {
     Color color;
     switch (estado) {
       case 'Activa': color = Colors.green; break;
       case 'Activo': color = Colors.green; break;
+      case 'Emitida': color = Colors.blue; break;
+      case 'Pagada': color = Colors.green; break;
+      case 'Vencida': color = Colors.red; break;
       case 'Gracia': color = Colors.orange; break;
       case 'Restringida':
       case 'Suspendido': color = Colors.red; break;
@@ -480,6 +971,72 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       child: Text(estado, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
     );
+  }
+
+  String _formatearFecha(DateTime dt) {
+    final local = dt.toLocal();
+    return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')}/${local.year} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _generarReporte() async {
+    setState(() {
+      _cargandoReporte = true;
+      _reporteActual = null;
+    });
+    try {
+      final reporte = await ApiService.obtenerReporteJornada(
+        fechaInicio: _fechaInicio,
+        fechaFin: _fechaFin.add(const Duration(days: 1)),
+      );
+      if (!mounted) return;
+      setState(() => _reporteActual = reporte);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _cargandoReporte = false);
+    }
+  }
+
+  void _exportarCSV() {
+    if (_reporteActual == null) return;
+    final registros = _reporteActual!['registros'] as List;
+
+    final buffer = StringBuffer();
+    buffer.writeln('Empleado,NumeroEmpleado,TipoChecada,Timestamp,Metodo,PuntoLectura,Hash');
+    for (final r in registros) {
+      final empleado = (r['empleado'] as String).replaceAll(',', ' ');
+      final puntoLectura = (r['puntoLectura'] as String).replaceAll(',', ' ');
+      buffer.writeln(
+        '$empleado,${r['numeroEmpleado']},${r['tipoChecada']},${r['timestampServidor']},${r['metodoUsado']},$puntoLectura,${r['hashRegistro']}'
+      );
+    }
+
+    final ahora = DateTime.now();
+    final nombreArchivo = 'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}.csv';
+
+    final bytes = utf8.encode(buffer.toString());
+    final blob = html.Blob([bytes], 'text/csv');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.document.createElement('a') as html.AnchorElement
+      ..href = url
+      ..style.display = 'none'
+      ..download = nombreArchivo;
+    html.document.body?.children.add(anchor);
+    anchor.click();
+    html.document.body?.children.remove(anchor);
+    html.Url.revokeObjectUrl(url);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Reporte descargado: $nombreArchivo'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    }
   }
 
   // =====================================================
@@ -1045,9 +1602,5 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
-  }
-
-  Widget _buildReportes() {
-    return const Center(child: Text('Aquí irá la descarga de reportes STPS'));
   }
 }

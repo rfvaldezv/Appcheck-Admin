@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // ⚠️ En desarrollo local, la API corre en HTTPS 7123
   static const String baseUrl = 'https://localhost:7123';
   static String? _token;
 
@@ -160,6 +159,83 @@ class ApiService {
     );
     if (response.statusCode != 200) {
       throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al eliminar empleado');
+    }
+  }
+
+  // =====================================================
+  // REPORTES
+  // =====================================================
+  static Future<Map<String, dynamic>> obtenerReporteJornada({
+    required DateTime fechaInicio,
+    required DateTime fechaFin,
+    String? empleadoId,
+  }) async {
+    final queryParams = {
+      'fechaInicio': fechaInicio.toIso8601String(),
+      'fechaFin': fechaFin.toIso8601String(),
+      if (empleadoId != null) 'empleadoId': empleadoId,
+    };
+    final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error al obtener reporte');
+  }
+
+  // =====================================================
+  // FACTURACIÓN
+  // =====================================================
+  static Future<List<dynamic>> listarPlanes() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/facturacion/planes'),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error al listar planes');
+  }
+
+  static Future<Map<String, dynamic>> miSuscripcion() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/facturacion/mi-suscripcion'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error al obtener suscripción');
+  }
+
+  static Future<Map<String, dynamic>> asignarPlan({required String cuentaId, required String planId}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/facturacion/asignar-plan'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({'cuentaId': cuentaId, 'planId': planId}),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al asignar plan');
+  }
+
+  static Future<List<dynamic>> listarFacturas() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/facturacion/facturas'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error al listar facturas');
+  }
+
+  static Future<Map<String, dynamic>> generarFactura() async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/facturacion/facturas/generar'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al generar factura');
+  }
+
+  static Future<void> marcarFacturaPagada(String facturaId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/facturacion/facturas/$facturaId/pagar'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al marcar factura como pagada');
     }
   }
 }
