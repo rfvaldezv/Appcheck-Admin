@@ -1,0 +1,23 @@
+﻿# Flutter/Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+*.iml
+
+# Build output
+android/
+ios/
+web/
+windows/
+linux/
+macos/
+
+# Pero sí queremos el web/index.html y web/manifest.json
+!web/
+
+# Secretos y configuración local
+.env
+*.log
