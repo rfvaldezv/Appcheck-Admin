@@ -121,6 +121,7 @@ class ApiService {
     required String nombreCompleto,
     required String pinRespaldo,
     required String metodoLectura,
+    String? fotoBase64,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/employee'),
@@ -130,6 +131,7 @@ class ApiService {
         'nombreCompleto': nombreCompleto,
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
+        'fotoBase64': fotoBase64,
       }),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
@@ -179,13 +181,13 @@ class ApiService {
     final queryParams = {
       'fechaInicio': fechaInicio.toIso8601String(),
       'fechaFin': fechaFin.toIso8601String(),
-      if (empleadoId != null) 'empleadoId': empleadoId,
-    };
-    final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
-    final response = await http.get(uri, headers: _headers(withAuth: true));
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception('Error al obtener reporte');
-  }
+    'empleadoId': ?empleadoId,
+      };
+      final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
+      final response = await http.get(uri, headers: _headers(withAuth: true));
+      if (response.statusCode == 200) return jsonDecode(response.body);
+      throw Exception('Error al obtener reporte');
+    }
 
   // =====================================================
   // FACTURACIÓN
