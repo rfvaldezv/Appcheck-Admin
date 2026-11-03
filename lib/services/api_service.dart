@@ -238,4 +238,14 @@ class ApiService {
       throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al marcar factura como pagada');
     }
   }
+
+  // 19. Comisiones: Obtener mis comisiones (solo Vendedor)
+  static Future<Map<String, dynamic>> obtenerComisiones() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/facturacion/comisiones'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al obtener comisiones');
+  }
 }

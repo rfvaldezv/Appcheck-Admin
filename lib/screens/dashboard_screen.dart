@@ -17,6 +17,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _totalKioskos = 0;
   int _totalEmpleados = 0;
   bool _cargando = true;
+  Map<String, dynamic>? _comisiones;
+  bool _cargandoComisiones = false;
+  String? _errorComisiones;
   String? _error;
 
   List<dynamic> _kioskos = [];
@@ -177,6 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           _menuItem(3, Icons.file_download, 'Reportes STPS'),
           _menuItem(4, Icons.receipt_long, 'Mi Suscripción'),
           _menuItem(5, Icons.fact_check, 'Facturas'),
+          _menuItem(6, Icons.attach_money, 'Comisiones'),
           const Spacer(),
           const Divider(color: Colors.white24),
           ListTile(
@@ -244,6 +248,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 3: return 'Reportes STPS';
       case 4: return 'Mi Suscripción';
       case 5: return 'Facturas';
+      case 6: return 'Mis Comisiones';
       default: return 'Dashboard';
     }
   }
@@ -256,6 +261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 3: return _buildReportes();
       case 4: return _buildMiSuscripcion();
       case 5: return _buildFacturas();
+      case 6: return _buildComisiones();
       default: return const SizedBox();
     }
   }
@@ -1600,6 +1606,193 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _cargarComisiones() async {
+    setState(() {
+      _cargandoComisiones = true;
+      _errorComisiones = null;
+    });
+    try {
+      final comisiones = await ApiService.obtenerComisiones();
+      if (!mounted) return;
+      setState(() => _comisiones = comisiones);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _errorComisiones = e.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _cargandoComisiones = false);
+    }
+  }
+
+  Widget _buildComisiones() {
+    // Si no es Vendedor, mostrar mensaje de acceso denegado
+    final rol = widget.usuario['rol'] ?? '';
+    if (rol != 'Vendedor') {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.lock, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Acceso solo para Vendedores',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Esta sección muestra las comisiones del vendedor.',
+              style: TextStyle(color: Colors.black54),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_comisiones == null && !_cargandoComisiones) {
+      _cargarComisiones();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Mis Comisiones', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          const Text(
+            'Resumen de tus ingresos por la cartera de clientes.',
+            style: TextStyle(color: Colors.black54),
+          ),
+          const SizedBox(height: 24),
+          if (_cargandoComisiones)
+            const Center(child: CircularProgressIndicator())
+          else if (_errorComisiones != null)
+            Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.orange),
+                  const SizedBox(height: 16),
+                  Text(
+                    _errorComisiones!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.black54),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _cargarComisiones,
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            )
+          else if (_comisiones != null)
+            Expanded(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      _tarjetaComision(
+                        'Clientes Activos',
+                        _comisiones!['clientesActivos'].toString(),
+                        Icons.people,
+                        const Color(0xFF0F766E),
+                      ),
+                      const SizedBox(width: 16),
+                      _tarjetaComision(
+                        'MRR Cobrado',
+                        '\$${_comisiones!['mrrCobrado']}',
+                        Icons.attach_money,
+                        const Color(0xFFF59E0B),
+                      ),
+                      const SizedBox(width: 16),
+                      _tarjetaComision(
+                        'Comisión',
+                        '\$${_comisiones!['comisionCalculada']}',
+                        Icons.trending_up,
+                        const Color(0xFF3B82F6),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Desglose del Cálculo',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const Divider(height: 32),
+                          _infoRow('MRR de tu cartera', '\$${_comisiones!['mrrCobrado']}'),
+                          _infoRow('Porcentaje de comisión', '${(_comisiones!['porcentajeComision'] * 100).toStringAsFixed(0)}%'),
+                          _infoRow('Comisión recurrente', '\$${_comisiones!['comisionCalculada']}'),
+                          _infoRow('Sueldo base', '\$${_comisiones!['sueldoBase']}'),
+                          const Divider(height: 32),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Estimado del Mes',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                '\$${_comisiones!['totalEstimado']}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF0F766E),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tarjetaComision(String titulo, String valor, IconData icono, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+              child: Icon(icono, color: color, size: 28),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titulo, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                Text(valor, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
