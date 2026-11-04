@@ -121,7 +121,7 @@ class ApiService {
     required String nombreCompleto,
     required String pinRespaldo,
     required String metodoLectura,
-    String? fotoBase64,
+    String? fotoBase64, // 👈 Asegúrate de que esté
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/employee'),
@@ -131,7 +131,7 @@ class ApiService {
         'nombreCompleto': nombreCompleto,
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
-        'fotoBase64': fotoBase64,
+        'fotoBase64': fotoBase64, // 👈 Asegúrate de que se envíe
       }),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
@@ -144,6 +144,7 @@ class ApiService {
     required String pinRespaldo,
     required String metodoLectura,
     required String estado,
+    String? fotoBase64, // 👈 NUEVO PARÁMETRO
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/api/employee/$id'),
@@ -153,6 +154,7 @@ class ApiService {
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
         'estado': estado,
+        'fotoBase64': fotoBase64, // 👈 ENVIAR LA FOTO
       }),
     );
     if (response.statusCode != 200) {

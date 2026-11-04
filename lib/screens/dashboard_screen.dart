@@ -1367,6 +1367,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String metodoSeleccionado = empleado['metodoLecturaPreferido'] ?? 'Mix';
     String estadoSeleccionado = empleado['estado'] ?? 'Activo';
     bool guardando = false;
+    String? fotoBase64; // 👈 Para la nueva foto
 
     await showDialog(
       context: context,
@@ -1405,6 +1406,69 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                         onChanged: (value) { if (value != null) setStateDialog(() => estadoSeleccionado = value); },
                       ),
+                      const SizedBox(height: 16),
+                      // 👈 SECCIÓN DE FOTO (NUEVA)
+                      const Text('Actualizar Rostro (opcional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                try {
+                                  final picker = ImagePicker();
+                                  final XFile? image = await picker.pickImage(source: ImageSource.camera, maxWidth: 300, imageQuality: 50);
+                                  if (image != null) {
+                                    final bytes = await image.readAsBytes();
+                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                                }
+                              },
+                              icon: const Icon(Icons.camera_alt),
+                              label: const Text('Tomar'),
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                try {
+                                  final picker = ImagePicker();
+                                  final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300, imageQuality: 50);
+                                  if (image != null) {
+                                    final bytes = await image.readAsBytes();
+                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                                }
+                              },
+                              icon: const Icon(Icons.upload_file),
+                              label: const Text('Subir'),
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade700, foregroundColor: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (fotoBase64 != null) ...[
+                        const SizedBox(height: 12),
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.green, size: 20),
+                            SizedBox(width: 8),
+                            Text('Nueva foto cargada', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.memory(base64Decode(fotoBase64!), height: 80, width: 80, fit: BoxFit.cover),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1422,12 +1486,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         pinRespaldo: pinController.text.trim(),
                         metodoLectura: metodoSeleccionado,
                         estado: estadoSeleccionado,
+                        fotoBase64: fotoBase64, // 👈 ENVIAR FOTO (si se cargó)
                       );
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       await _cargarEmpleados();
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado actualizado')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado actualizado correctamente')));
                     } catch (e) {
                       if (!mounted) return;
                       setStateDialog(() => guardando = false);
