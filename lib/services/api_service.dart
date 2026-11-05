@@ -2,13 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  //static const String baseUrl = 'https://localhost:7123';
-  // Si no se pasa la variable en compilación, usamos una URL de emergencia (producción)
-  // para evitar que la app compile apuntando a localhost por error.
-  static const String baseUrl = String.fromEnvironment(
-    'API_URL',
-    defaultValue: 'https://api.appcheck.com.mx', 
-  );
+  static const String baseUrl = 'https://api.appcheck.com.mx';
   static String? _token;
 
   static void setToken(String token) => _token = token;
@@ -104,6 +98,25 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> regenerarCodigoKiosko(String id) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/kiosko/$id/regenerar-codigo'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al regenerar código');
+  }
+
+  // 👈 NUEVO: Limpiar kioskos inactivos
+  static Future<Map<String, dynamic>> limpiarInactivos() async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/kiosko/limpiar-inactivos'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al limpiar inactivos');
+  }
+
   // =====================================================
   // EMPLEADOS
   // =====================================================
@@ -121,7 +134,7 @@ class ApiService {
     required String nombreCompleto,
     required String pinRespaldo,
     required String metodoLectura,
-    String? fotoBase64, // 👈 Asegúrate de que esté
+    String? fotoBase64,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/employee'),
@@ -131,7 +144,7 @@ class ApiService {
         'nombreCompleto': nombreCompleto,
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
-        'fotoBase64': fotoBase64, // 👈 Asegúrate de que se envíe
+        'fotoBase64': fotoBase64,
       }),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
@@ -144,7 +157,7 @@ class ApiService {
     required String pinRespaldo,
     required String metodoLectura,
     required String estado,
-    String? fotoBase64, // 👈 NUEVO PARÁMETRO
+    String? fotoBase64,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/api/employee/$id'),
@@ -154,7 +167,7 @@ class ApiService {
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
         'estado': estado,
-        'fotoBase64': fotoBase64, // 👈 ENVIAR LA FOTO
+        'fotoBase64': fotoBase64,
       }),
     );
     if (response.statusCode != 200) {
@@ -183,13 +196,13 @@ class ApiService {
     final queryParams = {
       'fechaInicio': fechaInicio.toIso8601String(),
       'fechaFin': fechaFin.toIso8601String(),
-    'empleadoId': ?empleadoId,
-      };
-      final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
-      final response = await http.get(uri, headers: _headers(withAuth: true));
-      if (response.statusCode == 200) return jsonDecode(response.body);
-      throw Exception('Error al obtener reporte');
-    }
+      if (empleadoId != null) 'empleadoId': empleadoId,
+    };
+    final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) return jsonDecode(response.body);
+    throw Exception('Error al obtener reporte');
+  }
 
   // =====================================================
   // FACTURACIÓN
@@ -247,25 +260,5 @@ class ApiService {
     if (response.statusCode != 200) {
       throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al marcar factura como pagada');
     }
-  }
-
-  // 19. Comisiones: Obtener mis comisiones (solo Vendedor)
-  static Future<Map<String, dynamic>> obtenerComisiones() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/facturacion/comisiones'),
-      headers: _headers(withAuth: true),
-    );
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al obtener comisiones');
-  }
-
-  // 20. Kioskos: Regenerar código de activación
-  static Future<Map<String, dynamic>> regenerarCodigoKiosko(String puntoLecturaId) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/kiosko/$puntoLecturaId/regenerar-codigo'),
-      headers: _headers(withAuth: true),
-    );
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al regenerar código');
   }
 }

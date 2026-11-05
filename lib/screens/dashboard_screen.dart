@@ -141,7 +141,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      // En móvil, mostramos un AppBar con el menú hamburguesa
       appBar: !isDesktop
           ? AppBar(
               backgroundColor: const Color(0xFF0F766E),
@@ -163,11 +162,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             )
           : null,
-      // Drawer para móvil
       drawer: !isDesktop ? _buildDrawer() : null,
       body: Row(
         children: [
-          // Sidebar solo en escritorio
           if (isDesktop) _buildSidebar(),
           Expanded(
             child: Container(
@@ -191,7 +188,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // 🔹 DRAWER PARA MÓVIL
   Widget _buildDrawer() {
     return Drawer(
       child: Container(
@@ -228,7 +224,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // 🔹 SIDEBAR PARA ESCRITORIO
   Widget _buildSidebar() {
     return Container(
       width: 250,
@@ -273,7 +268,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Text(titulo, style: const TextStyle(color: Colors.white)),
         onTap: () {
           setState(() => _seccionActual = index);
-          // Si estamos en móvil, cerramos el drawer
           if (MediaQuery.of(context).size.width < 800) {
             Navigator.pop(context);
           }
@@ -282,7 +276,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // 🔹 HEADER PARA ESCRITORIO
   Widget _buildHeader() {
     return Container(
       height: 70,
@@ -326,7 +319,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildContenido(bool isDesktop) {
-    // Pasamos isDesktop a las vistas para que se adapten
     switch (_seccionActual) {
       case 0: return _buildResumen(isDesktop);
       case 1: return _buildKioskos(isDesktop);
@@ -338,16 +330,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // =====================================================
-  // VISTA 1: RESUMEN (Responsive)
-  // =====================================================
   Widget _buildResumen(bool isDesktop) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // En móvil, las tarjetas se apilan verticalmente
           isDesktop
               ? Row(
                   children: [
@@ -404,9 +392,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =====================================================
-  // VISTA 2: KIOSKOS (Responsive)
-  // =====================================================
   Widget _buildKioskos(bool isDesktop) {
     final kioskosFiltrados = _kioskos.where((k) {
       final nombre = (k['nombre'] ?? '').toString().toLowerCase();
@@ -418,22 +403,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Kioskos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ElevatedButton.icon(
-                onPressed: _mostrarDialogoAltaDirectaKiosko,
-                icon: const Icon(Icons.add_circle),
-                label: const Text('Alta Directa'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _mostrarDialogoAltaDirectaKiosko,
+                    icon: const Icon(Icons.add_circle),
+                    label: const Text('Alta Directa'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  // 👈 BOTÓN DE LIMPIEZA
+                  ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        final response = await ApiService.limpiarInactivos();
+                        await _cargarKioskos();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(response['mensaje']), backgroundColor: Colors.green),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.cleaning_services),
+                    label: const Text('Limpiar Inactivos'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey.shade700,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
           const SizedBox(height: 16),
           TextField(
             decoration: InputDecoration(
@@ -520,9 +531,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =====================================================
-  // VISTA 3: EMPLEADOS (Responsive)
-  // =====================================================
   Widget _buildEmpleados(bool isDesktop) {
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -603,9 +611,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =====================================================
-  // VISTA 4: REPORTES STPS
-  // =====================================================
   Widget _buildReportes() {
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -740,9 +745,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =====================================================
-  // VISTA 5: MI SUSCRIPCIÓN
-  // =====================================================
   Widget _buildMiSuscripcion() {
     if (_suscripcionActual == null && !_cargandoSuscripcion) {
       _cargarSuscripcion();
@@ -809,9 +811,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // =====================================================
-  // VISTA 6: FACTURAS
-  // =====================================================
   Widget _buildFacturas() {
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -953,7 +952,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _cargandoFacturas = true);
     try {
       final response = await ApiService.generarFactura();
-      await _cargarFacturas();
+      await _cargarFacturas(); // 👈 Refrescar lista
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Factura generada: ${response['periodo']}'), backgroundColor: Colors.green.shade700));
     } catch (e) {
@@ -967,7 +966,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _marcarFacturaPagada(String facturaId) async {
     try {
       await ApiService.marcarFacturaPagada(facturaId);
-      await _cargarFacturas();
+      await _cargarFacturas(); // 👈 Refrescar lista
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Factura marcada como pagada'), backgroundColor: Colors.green));
     } catch (e) {
@@ -976,9 +975,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  // =====================================================
-  // DIÁLOGOS (Kioskos, Empleados, etc.)
-  // =====================================================
   Future<void> _mostrarDialogoAltaDirectaKiosko() async {
     final nombreController = TextEditingController();
     final deviceIdController = TextEditingController();
@@ -1045,7 +1041,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       try {
                         final response = await ApiService.altaDirectaKiosko(nombre: nombreController.text.trim(), tipo: tipoSeleccionado, deviceId: deviceIdController.text.trim());
                         setStateDialog(() { tokenGenerado = response['tokenPuntoLectura'] as String; guardando = false; });
-                        await _cargarKioskos();
+                        await _cargarKioskos(); // 👈 Refrescar lista
                       } catch (e) {
                         setStateDialog(() => guardando = false);
                         if (!context.mounted) return;
@@ -1057,7 +1053,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ] else ...[
                   ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _cargarKioskos(); // 👈 Refrescar al cerrar
+                    },
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
                     child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
                   ),
@@ -1109,7 +1108,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       await ApiService.editarKiosko(id: kiosko['puntoLecturaId'], nombre: nombreController.text.trim(), tipo: tipoSeleccionado);
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      await _cargarKioskos();
+                      await _cargarKioskos(); // 👈 Refrescar lista
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko actualizado correctamente')));
                     } catch (e) {
@@ -1143,7 +1142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (confirmar == true) {
       try {
         await ApiService.revocarKiosko(id);
-        await _cargarKioskos();
+        await _cargarKioskos(); // 👈 Refrescar lista
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko revocado')));
       } catch (e) {
@@ -1168,7 +1167,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (confirmar == true) {
       try {
         await ApiService.eliminarKiosko(id);
-        await _cargarKioskos();
+        await _cargarKioskos(); // 👈 Refrescar lista
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko eliminado')));
       } catch (e) {
@@ -1182,7 +1181,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final response = await ApiService.regenerarCodigoKiosko(kiosko['puntoLecturaId']);
       if (!mounted) return;
-      await _cargarKioskos();
+      await _cargarKioskos(); // 👈 Refrescar lista
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -1204,7 +1203,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           actions: [
-            ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)), child: const Text('Cerrar', style: TextStyle(color: Colors.white))),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _cargarKioskos(); // 👈 Refrescar al cerrar
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
+              child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+            ),
           ],
         ),
       );
@@ -1341,7 +1347,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      await _cargarEmpleados();
+                      await _cargarEmpleados(); // 👈 Refrescar lista
                       if (!mounted) return;
                       _mostrarAcuseLegal(response['acuseContenido'] ?? '');
                     } catch (e) {
@@ -1367,7 +1373,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String metodoSeleccionado = empleado['metodoLecturaPreferido'] ?? 'Mix';
     String estadoSeleccionado = empleado['estado'] ?? 'Activo';
     bool guardando = false;
-    String? fotoBase64; // 👈 Para la nueva foto
 
     await showDialog(
       context: context,
@@ -1406,69 +1411,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ],
                         onChanged: (value) { if (value != null) setStateDialog(() => estadoSeleccionado = value); },
                       ),
-                      const SizedBox(height: 16),
-                      // 👈 SECCIÓN DE FOTO (NUEVA)
-                      const Text('Actualizar Rostro (opcional)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                try {
-                                  final picker = ImagePicker();
-                                  final XFile? image = await picker.pickImage(source: ImageSource.camera, maxWidth: 300, imageQuality: 50);
-                                  if (image != null) {
-                                    final bytes = await image.readAsBytes();
-                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-                                }
-                              },
-                              icon: const Icon(Icons.camera_alt),
-                              label: const Text('Tomar'),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                try {
-                                  final picker = ImagePicker();
-                                  final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300, imageQuality: 50);
-                                  if (image != null) {
-                                    final bytes = await image.readAsBytes();
-                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-                                }
-                              },
-                              icon: const Icon(Icons.upload_file),
-                              label: const Text('Subir'),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade700, foregroundColor: Colors.white),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (fotoBase64 != null) ...[
-                        const SizedBox(height: 12),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 20),
-                            SizedBox(width: 8),
-                            Text('Nueva foto cargada', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(base64Decode(fotoBase64!), height: 80, width: 80, fit: BoxFit.cover),
-                        ),
-                      ],
                     ],
                   ),
                 ),
@@ -1486,13 +1428,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         pinRespaldo: pinController.text.trim(),
                         metodoLectura: metodoSeleccionado,
                         estado: estadoSeleccionado,
-                        fotoBase64: fotoBase64, // 👈 ENVIAR FOTO (si se cargó)
                       );
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      await _cargarEmpleados();
+                      await _cargarEmpleados(); // 👈 Refrescar lista
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado actualizado correctamente')));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado actualizado')));
                     } catch (e) {
                       if (!mounted) return;
                       setStateDialog(() => guardando = false);
@@ -1525,7 +1466,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (confirmar == true) {
       try {
         await ApiService.eliminarEmpleado(id);
-        await _cargarEmpleados();
+        await _cargarEmpleados(); // 👈 Refrescar lista
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado eliminado')));
       } catch (e) {
