@@ -107,7 +107,6 @@ class ApiService {
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al regenerar código');
   }
 
-  // 👈 NUEVO: Limpiar kioskos inactivos
   static Future<Map<String, dynamic>> limpiarInactivos() async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/kiosko/limpiar-inactivos'),

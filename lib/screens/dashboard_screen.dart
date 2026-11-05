@@ -26,6 +26,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   List<dynamic> _empleados = [];
   bool _cargandoEmpleados = false;
+  String _filtroEmpleados = '';
+  String _filtroEstadoEmpleados = 'Todos';
+  String _filtroEmpresaEmpleados = 'Todas';
+  String _filtroVendedorEmpleados = 'Todos';
 
   Map<String, dynamic>? _suscripcionActual;
   bool _cargandoSuscripcion = false;
@@ -403,6 +407,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Kioskos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               Row(
                 children: [
                   ElevatedButton.icon(
@@ -416,7 +424,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // 👈 BOTÓN DE LIMPIEZA
                   ElevatedButton.icon(
                     onPressed: () async {
                       try {
@@ -445,6 +452,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ),
                 ],
               ),
+            ],
+          ),
           const SizedBox(height: 16),
           TextField(
             decoration: InputDecoration(
@@ -532,6 +541,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildEmpleados(bool isDesktop) {
+    final empresas = _empleados.map((e) => e['empresa'] ?? 'N/A').toSet().toList();
+    final vendedores = _empleados.map((e) => e['vendedor'] ?? 'Sin vendedor').toSet().toList();
+
+    final empleadosFiltrados = _empleados.where((e) {
+      final nombre = (e['nombreCompleto'] ?? '').toString().toLowerCase();
+      final numero = (e['numeroEmpleado'] ?? '').toString().toLowerCase();
+      final coincideTexto = nombre.contains(_filtroEmpleados.toLowerCase()) ||
+                            numero.contains(_filtroEmpleados.toLowerCase());
+      
+      final estado = e['estado'] ?? 'Activo';
+      final coincideEstado = _filtroEstadoEmpleados == 'Todos' || estado == _filtroEstadoEmpleados;
+
+      final empresa = e['empresa'] ?? 'N/A';
+      final coincideEmpresa = _filtroEmpresaEmpleados == 'Todas' || empresa == _filtroEmpresaEmpleados;
+
+      final vendedor = e['vendedor'] ?? 'Sin vendedor';
+      final coincideVendedor = _filtroVendedorEmpleados == 'Todos' || vendedor == _filtroVendedorEmpleados;
+
+      return coincideTexto && coincideEstado && coincideEmpresa && coincideVendedor;
+    }).toList();
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -554,13 +584,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              SizedBox(
+                width: 250,
+                child: TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Buscar por nombre o número...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    filled: true,
+                    fillColor: Colors.white,
+                  ),
+                  onChanged: (value) => setState(() => _filtroEmpleados = value),
+                ),
+              ),
+              DropdownButton<String>(
+                value: _filtroEstadoEmpleados,
+                items: const [
+                  DropdownMenuItem(value: 'Todos', child: Text('Todos (Estado)')),
+                  DropdownMenuItem(value: 'Activo', child: Text('Activo')),
+                  DropdownMenuItem(value: 'Inactivo', child: Text('Inactivo')),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _filtroEstadoEmpleados = value);
+                },
+              ),
+              DropdownButton<String>(
+                value: _filtroEmpresaEmpleados,
+                items: [
+                  const DropdownMenuItem(value: 'Todas', child: Text('Todas (Empresa)')),
+                  ...empresas.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _filtroEmpresaEmpleados = value);
+                },
+              ),
+              DropdownButton<String>(
+                value: _filtroVendedorEmpleados,
+                items: [
+                  const DropdownMenuItem(value: 'Todos', child: Text('Todos (Vendedor)')),
+                  ...vendedores.map((v) => DropdownMenuItem(value: v, child: Text(v))),
+                ],
+                onChanged: (value) {
+                  if (value != null) setState(() => _filtroVendedorEmpleados = value);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: _cargandoEmpleados
                 ? const Center(child: CircularProgressIndicator())
-                : _empleados.isEmpty
+                : empleadosFiltrados.isEmpty
                     ? const Center(
                         child: Text(
-                          'No hay empleados registrados todavía.',
+                          'No hay empleados que coincidan con los filtros.',
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.black54, fontSize: 16),
                         ),
@@ -572,10 +653,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                         ),
                         child: ListView.separated(
-                          itemCount: _empleados.length,
+                          itemCount: empleadosFiltrados.length,
                           separatorBuilder: (_, _) => const Divider(height: 1),
                           itemBuilder: (context, index) {
-                            final empleado = _empleados[index];
+                            final empleado = empleadosFiltrados[index];
                             return ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: const Color(0xFF0F766E).withValues(alpha: 0.1),
@@ -585,7 +666,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 ),
                               ),
                               title: Text(empleado['nombreCompleto'] ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('Nómina: ${empleado['numeroEmpleado']}', style: const TextStyle(fontSize: 12)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('Nómina: ${empleado['numeroEmpleado']} • Método: ${empleado['metodoLecturaPreferido']}'),
+                                  Text('Empresa: ${empleado['empresa'] ?? 'N/A'} • Vendedor: ${empleado['vendedor'] ?? 'Sin vendedor'}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
+                                ],
+                              ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -952,7 +1039,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() => _cargandoFacturas = true);
     try {
       final response = await ApiService.generarFactura();
-      await _cargarFacturas(); // 👈 Refrescar lista
+      await _cargarFacturas();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Factura generada: ${response['periodo']}'), backgroundColor: Colors.green.shade700));
     } catch (e) {
@@ -966,7 +1053,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _marcarFacturaPagada(String facturaId) async {
     try {
       await ApiService.marcarFacturaPagada(facturaId);
-      await _cargarFacturas(); // 👈 Refrescar lista
+      await _cargarFacturas();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Factura marcada como pagada'), backgroundColor: Colors.green));
     } catch (e) {
@@ -1041,7 +1128,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       try {
                         final response = await ApiService.altaDirectaKiosko(nombre: nombreController.text.trim(), tipo: tipoSeleccionado, deviceId: deviceIdController.text.trim());
                         setStateDialog(() { tokenGenerado = response['tokenPuntoLectura'] as String; guardando = false; });
-                        await _cargarKioskos(); // 👈 Refrescar lista
+                        await _cargarKioskos();
                       } catch (e) {
                         setStateDialog(() => guardando = false);
                         if (!context.mounted) return;
@@ -1055,7 +1142,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.pop(context);
-                      _cargarKioskos(); // 👈 Refrescar al cerrar
+                      _cargarKioskos();
                     },
                     style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
                     child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
@@ -1108,7 +1195,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       await ApiService.editarKiosko(id: kiosko['puntoLecturaId'], nombre: nombreController.text.trim(), tipo: tipoSeleccionado);
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      await _cargarKioskos(); // 👈 Refrescar lista
+                      await _cargarKioskos();
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko actualizado correctamente')));
                     } catch (e) {
@@ -1142,7 +1229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (confirmar == true) {
       try {
         await ApiService.revocarKiosko(id);
-        await _cargarKioskos(); // 👈 Refrescar lista
+        await _cargarKioskos();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko revocado')));
       } catch (e) {
@@ -1167,7 +1254,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (confirmar == true) {
       try {
         await ApiService.eliminarKiosko(id);
-        await _cargarKioskos(); // 👈 Refrescar lista
+        await _cargarKioskos();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko eliminado')));
       } catch (e) {
@@ -1181,7 +1268,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     try {
       final response = await ApiService.regenerarCodigoKiosko(kiosko['puntoLecturaId']);
       if (!mounted) return;
-      await _cargarKioskos(); // 👈 Refrescar lista
+      await _cargarKioskos();
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -1206,7 +1293,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
-                _cargarKioskos(); // 👈 Refrescar al cerrar
+                _cargarKioskos();
               },
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
               child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
@@ -1223,7 +1310,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final nombreController = TextEditingController();
     final numeroController = TextEditingController();
     final pinController = TextEditingController();
-    String metodoSeleccionado = 'Mix';
+    String metodoSeleccionado = 'QR';
     bool guardando = false;
     String? fotoBase64;
 
@@ -1250,9 +1337,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         initialValue: metodoSeleccionado,
                         decoration: const InputDecoration(labelText: 'Método de lectura', border: OutlineInputBorder()),
                         items: const [
-                          DropdownMenuItem(value: 'Mix', child: Text('Mix (QR + Facial)')),
-                          DropdownMenuItem(value: 'QR', child: Text('Solo QR')),
-                          DropdownMenuItem(value: 'Facial', child: Text('Solo Facial')),
+                          DropdownMenuItem(value: 'QR', child: Text('QR')),
+                          DropdownMenuItem(value: 'PIN', child: Text('PIN')),
+                          DropdownMenuItem(value: 'QR+Rostro', child: Text('QR + Rostro')),
+                          DropdownMenuItem(value: 'PIN+Rostro', child: Text('PIN + Rostro')),
+                          DropdownMenuItem(value: 'Rostro', child: Text('Solo Rostro (próximamente)')),
                         ],
                         onChanged: (value) { if (value != null) setStateDialog(() => metodoSeleccionado = value); },
                       ),
@@ -1347,7 +1436,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      await _cargarEmpleados(); // 👈 Refrescar lista
+                      await _cargarEmpleados();
                       if (!mounted) return;
                       _mostrarAcuseLegal(response['acuseContenido'] ?? '');
                     } catch (e) {
@@ -1370,7 +1459,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _mostrarDialogoEditarEmpleado(Map<String, dynamic> empleado) async {
     final nombreController = TextEditingController(text: empleado['nombreCompleto']);
     final pinController = TextEditingController();
-    String metodoSeleccionado = empleado['metodoLecturaPreferido'] ?? 'Mix';
+    String metodoSeleccionado = empleado['metodoLecturaPreferido'] ?? 'QR';
     String estadoSeleccionado = empleado['estado'] ?? 'Activo';
     bool guardando = false;
 
@@ -1395,9 +1484,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         initialValue: metodoSeleccionado,
                         decoration: const InputDecoration(labelText: 'Método de lectura', border: OutlineInputBorder()),
                         items: const [
-                          DropdownMenuItem(value: 'Mix', child: Text('Mix')),
-                          DropdownMenuItem(value: 'QR', child: Text('Solo QR')),
-                          DropdownMenuItem(value: 'Facial', child: Text('Solo Facial')),
+                          DropdownMenuItem(value: 'QR', child: Text('QR')),
+                          DropdownMenuItem(value: 'PIN', child: Text('PIN')),
+                          DropdownMenuItem(value: 'QR+Rostro', child: Text('QR + Rostro')),
+                          DropdownMenuItem(value: 'PIN+Rostro', child: Text('PIN + Rostro')),
+                          DropdownMenuItem(value: 'Rostro', child: Text('Solo Rostro (próximamente)')),
                         ],
                         onChanged: (value) { if (value != null) setStateDialog(() => metodoSeleccionado = value); },
                       ),
@@ -1431,7 +1522,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       );
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      await _cargarEmpleados(); // 👈 Refrescar lista
+                      await _cargarEmpleados();
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado actualizado')));
                     } catch (e) {
@@ -1466,7 +1557,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (confirmar == true) {
       try {
         await ApiService.eliminarEmpleado(id);
-        await _cargarEmpleados(); // 👈 Refrescar lista
+        await _cargarEmpleados();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado eliminado')));
       } catch (e) {
