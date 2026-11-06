@@ -145,7 +145,8 @@ class ApiService {
         'metodoLecturaPreferido': metodoLectura,
         'fotoBase64': fotoBase64,
       }),
-    );
+    ).timeout(const Duration(seconds: 120)); // 👈 Timeout de 120 segundos
+
     if (response.statusCode == 200) return jsonDecode(response.body);
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al dar de alta empleado');
   }
@@ -168,7 +169,8 @@ class ApiService {
         'estado': estado,
         'fotoBase64': fotoBase64,
       }),
-    );
+    ).timeout(const Duration(seconds: 120)); // 👈 Timeout de 120 segundos
+
     if (response.statusCode != 200) {
       throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar empleado');
     }
