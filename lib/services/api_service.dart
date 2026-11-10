@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = 'https://api.appcheck.com.mx';
+  static const String baseUrl = String.fromEnvironment(
+    'API_URL',
+    defaultValue: 'https://api.appcheck.com.mx',
+  );
+
   static String? _token;
 
   static void setToken(String token) => _token = token;
-  static String? getToken() => _token;
 
   static Map<String, String> _headers({bool withAuth = false}) {
     final headers = {'Content-Type': 'application/json'};
@@ -16,7 +19,9 @@ class ApiService {
     return headers;
   }
 
-  // 1. Login
+  // =====================================================
+  // AUTH
+  // =====================================================
   static Future<Map<String, dynamic>> login({required String email, required String password}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/auth/login'),
@@ -39,15 +44,41 @@ class ApiService {
       Uri.parse('$baseUrl/api/kiosko'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Backend devuelve {value: [...], Count: N}
+      if (data is Map && data['value'] is List) return data['value'];
+      // O devuelve un array directo
+      if (data is List) return data;
+      return [];
+    }
     throw Exception('Error al listar kioskos');
+  }
+
+  // =====================================================
+  // EMPLEADOS
+  // =====================================================
+  static Future<List<dynamic>> listarEmpleados() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/employee'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Backend devuelve un array directo
+      if (data is List) return data;
+      // O devuelve {value: [...], Count: N}
+      if (data is Map && data['value'] is List) return data['value'];
+      return [];
+    }
+    throw Exception('Error al listar empleados');
   }
 
   static Future<Map<String, dynamic>> generarCodigoKiosko({required String nombre, required String tipo}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/kiosko/generar-codigo'),
       headers: _headers(withAuth: true),
-      body: jsonEncode({'nombreKiosko': nombre, 'tipo': tipo}),
+      body: jsonEncode({'nombre': nombre, 'tipo': tipo}),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al generar código');
@@ -64,7 +95,7 @@ class ApiService {
       body: jsonEncode({'nombre': nombre, 'tipo': tipo, 'deviceId': deviceId}),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error en alta directa');
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al dar de alta kiosko');
   }
 
   static Future<void> editarKiosko({required String id, required String nombre, required String tipo}) async {
@@ -73,9 +104,7 @@ class ApiService {
       headers: _headers(withAuth: true),
       body: jsonEncode({'nombre': nombre, 'tipo': tipo}),
     );
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar kiosko');
-    }
+    if (response.statusCode != 200) throw Exception('Error al editar kiosko');
   }
 
   static Future<void> revocarKiosko(String id) async {
@@ -83,9 +112,7 @@ class ApiService {
       Uri.parse('$baseUrl/api/kiosko/revocar/$id'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al revocar kiosko');
-    }
+    if (response.statusCode != 200) throw Exception('Error al revocar kiosko');
   }
 
   static Future<void> eliminarKiosko(String id) async {
@@ -93,9 +120,7 @@ class ApiService {
       Uri.parse('$baseUrl/api/kiosko/$id'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al eliminar kiosko');
-    }
+    if (response.statusCode != 200) throw Exception('Error al eliminar kiosko');
   }
 
   static Future<Map<String, dynamic>> regenerarCodigoKiosko(String id) async {
@@ -104,7 +129,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al regenerar código');
+    throw Exception('Error al regenerar código');
   }
 
   static Future<Map<String, dynamic>> limpiarInactivos() async {
@@ -113,19 +138,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al limpiar inactivos');
-  }
-
-  // =====================================================
-  // EMPLEADOS
-  // =====================================================
-  static Future<List<dynamic>> listarEmpleados() async {
-    final response = await http.get(
-      Uri.parse('$baseUrl/api/employee'),
-      headers: _headers(withAuth: true),
-    );
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception('Error al listar empleados');
+    throw Exception('Error al limpiar inactivos');
   }
 
   static Future<Map<String, dynamic>> altaEmpleado({
@@ -145,8 +158,7 @@ class ApiService {
         'metodoLecturaPreferido': metodoLectura,
         'fotoBase64': fotoBase64,
       }),
-    ).timeout(const Duration(seconds: 120)); // 👈 Timeout de 120 segundos
-
+    ).timeout(const Duration(seconds: 120));
     if (response.statusCode == 200) return jsonDecode(response.body);
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al dar de alta empleado');
   }
@@ -169,8 +181,7 @@ class ApiService {
         'estado': estado,
         'fotoBase64': fotoBase64,
       }),
-    ).timeout(const Duration(seconds: 120)); // 👈 Timeout de 120 segundos
-
+    ).timeout(const Duration(seconds: 120));
     if (response.statusCode != 200) {
       throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar empleado');
     }
@@ -181,28 +192,62 @@ class ApiService {
       Uri.parse('$baseUrl/api/employee/$id'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al eliminar empleado');
-    }
+    if (response.statusCode != 200) throw Exception('Error al eliminar empleado');
   }
 
   // =====================================================
-  // REPORTES
+  // REPORTES (con filtros)
   // =====================================================
   static Future<Map<String, dynamic>> obtenerReporteJornada({
     required DateTime fechaInicio,
     required DateTime fechaFin,
+    String? cuentaId,
+    String? vendedorId,
+    String? metodoUsado,
     String? empleadoId,
   }) async {
     final queryParams = {
       'fechaInicio': fechaInicio.toIso8601String(),
       'fechaFin': fechaFin.toIso8601String(),
+      if (cuentaId != null) 'cuentaId': cuentaId,
+      if (vendedorId != null) 'vendedorId': vendedorId,
+      if (metodoUsado != null) 'metodoUsado': metodoUsado,
       if (empleadoId != null) 'empleadoId': empleadoId,
     };
     final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
     final response = await http.get(uri, headers: _headers(withAuth: true));
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data is Map<String, dynamic>) ? data : {'registros': [], 'totalRegistros': 0};
+    }
     throw Exception('Error al obtener reporte');
+  }
+
+  // =====================================================
+  // FILTROS (empresas y vendedores)
+  // =====================================================
+  static Future<List<dynamic>> listarEmpresas() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/empresas'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data is List) ? data : [];
+    }
+    return [];
+  }
+
+  static Future<List<dynamic>> listarVendedores() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/vendedores'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data is List) ? data : [];
+    }
+    return [];
   }
 
   // =====================================================
@@ -211,8 +256,12 @@ class ApiService {
   static Future<List<dynamic>> listarPlanes() async {
     final response = await http.get(
       Uri.parse('$baseUrl/api/facturacion/planes'),
+      headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data is List) ? data : [];
+    }
     throw Exception('Error al listar planes');
   }
 
@@ -221,7 +270,10 @@ class ApiService {
       Uri.parse('$baseUrl/api/facturacion/mi-suscripcion'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data is Map<String, dynamic>) ? data : {};
+    }
     throw Exception('Error al obtener suscripción');
   }
 
@@ -232,7 +284,7 @@ class ApiService {
       body: jsonEncode({'cuentaId': cuentaId, 'planId': planId}),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al asignar plan');
+    throw Exception('Error al asignar plan');
   }
 
   static Future<List<dynamic>> listarFacturas() async {
@@ -240,7 +292,10 @@ class ApiService {
       Uri.parse('$baseUrl/api/facturacion/facturas'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data is List) ? data : [];
+    }
     throw Exception('Error al listar facturas');
   }
 
@@ -250,7 +305,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al generar factura');
+    throw Exception('Error al generar factura');
   }
 
   static Future<void> marcarFacturaPagada(String facturaId) async {
@@ -258,8 +313,6 @@ class ApiService {
       Uri.parse('$baseUrl/api/facturacion/facturas/$facturaId/pagar'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al marcar factura como pagada');
-    }
+    if (response.statusCode != 200) throw Exception('Error al marcar factura como pagada');
   }
 }

@@ -1,7 +1,8 @@
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:universal_html/html.dart' as html;
+import 'package:file_saver/file_saver.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
 
@@ -31,6 +32,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _filtroEmpresaEmpleados = 'Todas';
   String _filtroVendedorEmpleados = 'Todos';
 
+  // Filtros de reporte
+  String? _filtroEmpresa;
+  String? _filtroVendedor;
+  String? _filtroMetodo;
+  List<dynamic> _empresas = [];
+  List<dynamic> _vendedores = [];
+  final List<String> _metodos = ['QR', 'QR+Rostro', 'ID+PIN', 'ID+Rostro', 'Rostro', 'Huella'];
+
   Map<String, dynamic>? _suscripcionActual;
   bool _cargandoSuscripcion = false;
 
@@ -49,6 +58,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     super.initState();
     _cargarDatos();
     _cargarFacturas();
+    _cargarEmpresasYVendedores();
+  }
+
+  Future<void> _cargarEmpresasYVendedores() async {
+    try {
+      final empresas = await ApiService.listarEmpresas();
+      final vendedores = await ApiService.listarVendedores();
+      if (!mounted) return;
+      setState(() {
+        _empresas = empresas;
+        _vendedores = vendedores;
+      });
+    } catch (e) {
+      debugPrint('Error cargando empresas/vendedores: $e');
+    }
   }
 
   Future<void> _cargarDatos() async {
@@ -57,20 +81,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _error = null;
     });
     try {
-      final kioskos = await ApiService.listarKioskos();
-      final empleados = await ApiService.listarEmpleados();
+      final kioskos = await ApiService.listarKioskos() ?? [];
+      final empleados = await ApiService.listarEmpleados() ?? [];
       if (!mounted) return;
       setState(() {
         _totalKioskos = kioskos.length;
         _totalEmpleados = empleados.length;
         _kioskos = kioskos;
         _empleados = empleados;
+        _cargando = false;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
-    } finally {
-      if (mounted) setState(() => _cargando = false);
+      setState(() {
+        _error = e.toString();
+        _cargando = false;
+      });
     }
   }
 
@@ -660,8 +686,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             return ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: const Color(0xFF0F766E).withValues(alpha: 0.1),
-                                child: Text(
-                                  (empleado['nombreCompleto'] as String).substring(0, 1).toUpperCase(),
+				child: Text(
+				  (empleado['nombreCompleto'] as String? ?? 'E').substring(0, 1).toUpperCase(),
                                   style: const TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold),
                                 ),
                               ),
@@ -704,84 +730,144 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Reportes de Jornada (STPS)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text('Reportes de Jornada (STPS)',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          const Text('Selecciona el periodo y descarga el reporte.', style: TextStyle(color: Colors.black54)),
+          const Text('Selecciona el periodo y descarga el reporte.',
+              style: TextStyle(color: Colors.black54)),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+              ],
             ),
             child: Column(
               children: [
+                // Fila 1: Fechas
                 Row(
                   children: [
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Fecha inicio', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () async {
-                              final picked = await showDatePicker(context: context, initialDate: _fechaInicio, firstDate: DateTime(2020), lastDate: DateTime.now());
-                              if (picked != null) setState(() => _fechaInicio = picked);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8)),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('${_fechaInicio.day}/${_fechaInicio.month}/${_fechaInicio.year}'),
-                                  const Icon(Icons.calendar_today, size: 18),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: TextFormField(
+                        initialValue: _formatearFechaSimple(_fechaInicio),
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Fecha Inicio',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _fechaInicio,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) setState(() => _fechaInicio = picked);
+                        },
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Fecha fin', style: TextStyle(fontSize: 12, color: Colors.black54)),
-                          const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () async {
-                              final picked = await showDatePicker(context: context, initialDate: _fechaFin, firstDate: DateTime(2020), lastDate: DateTime.now());
-                              if (picked != null) setState(() => _fechaFin = picked);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              decoration: BoxDecoration(border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(8)),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('${_fechaFin.day}/${_fechaFin.month}/${_fechaFin.year}'),
-                                  const Icon(Icons.calendar_today, size: 18),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: TextFormField(
+                        initialValue: _formatearFechaSimple(_fechaFin),
+                        readOnly: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Fecha Fin',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.calendar_today),
+                        ),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: _fechaFin,
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2030),
+                          );
+                          if (picked != null) setState(() => _fechaFin = picked);
+                        },
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
+                // Fila 2: Filtros
+                Row(
+                  children: [
+                    if (widget.usuario['rol'] == 'SuperAdmin')
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _filtroEmpresa,
+                          decoration: const InputDecoration(
+                            labelText: 'Empresa',
+                            border: OutlineInputBorder(),
+                          ),
+items: [
+  const DropdownMenuItem<String>(value: null, child: Text('Todas')),
+  ..._empresas.map((e) => DropdownMenuItem<String>(
+        value: e['cuentaId'] as String,
+        child: Text(e['nombreComercial'] as String? ?? 'Sin nombre'),
+      )),
+],
+                          onChanged: (value) => setState(() => _filtroEmpresa = value),
+                        ),
+                      ),
+                    if (widget.usuario['rol'] == 'SuperAdmin')
+                      const SizedBox(width: 16),
+                    if (widget.usuario['rol'] == 'SuperAdmin')
+                      Expanded(
+                        child: DropdownButtonFormField<String>(
+                          value: _filtroVendedor,
+                          decoration: const InputDecoration(
+                            labelText: 'Vendedor',
+                            border: OutlineInputBorder(),
+                          ),
+                          items: [
+const DropdownMenuItem<String>(value: null, child: Text('Todos')),
+                            ..._vendedores.map((v) => DropdownMenuItem<String>(
+                                  value: v['usuarioId'] as String,
+                                  child: Text(v['nombre'] as String? ?? 'Sin nombre'),
+                                )),
+                          ],
+                          onChanged: (value) => setState(() => _filtroVendedor = value),
+                        ),
+                      ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _filtroMetodo,
+                        decoration: const InputDecoration(
+                          labelText: 'Método',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: [
+const DropdownMenuItem<String>(value: null, child: Text('Todos')),
+                          ..._metodos.map((m) => DropdownMenuItem<String>(
+                                value: m,
+                                child: Text(m),
+                              )),
+                        ],
+                        onChanged: (value) => setState(() => _filtroMetodo = value),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // Botón Generar
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: _cargandoReporte ? null : _generarReporte,
                     icon: const Icon(Icons.search),
                     label: Text(_cargandoReporte ? 'Generando...' : 'Generar Reporte'),
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E), foregroundColor: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F766E),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
                   ),
                 ),
               ],
@@ -790,7 +876,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 24),
           Expanded(
             child: _reporteActual == null
-                ? const Center(child: Text('Selecciona un rango y genera el reporte.', style: TextStyle(color: Colors.black54)))
+                ? const Center(
+                    child: Text('Selecciona un rango y genera el reporte.',
+                        style: TextStyle(color: Colors.black54)))
                 : _reporteActual!['registros'].isEmpty
                     ? const Center(child: Text('No hay registros.'))
                     : Column(
@@ -798,27 +886,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total: ${_reporteActual!['totalRegistros']} registros', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              IconButton(
-                                onPressed: _exportarCSV,
-                                icon: const Icon(Icons.download, color: Colors.green),
-                                tooltip: 'Descargar CSV',
+                              Text(
+                                  'Total: ${_reporteActual!['totalRegistros']} registros',
+                                  style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: _exportarCSV,
+                                    icon: const Icon(Icons.download),
+                                    tooltip: 'Exportar a CSV',
+                                  ),
+                                  IconButton(
+                                    onPressed: _exportarExcel,
+                                    icon: const Icon(Icons.table_chart),
+                                    tooltip: 'Exportar a Excel',
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Expanded(
                             child: Container(
-                              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                              decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12)),
                               child: ListView.separated(
                                 itemCount: _reporteActual!['registros'].length,
-                                separatorBuilder: (_, _) => const Divider(height: 1),
+                                separatorBuilder: (_, _) =>
+                                    const Divider(height: 1),
                                 itemBuilder: (context, index) {
                                   final r = _reporteActual!['registros'][index];
+                                  final tipo = (r['tipoChecada'] as String? ?? 'N/A');
+                                  final empleado = (r['empleado'] as String? ?? 'Sin nombre');
+                                  final numero = (r['numeroEmpleado'] as String? ?? 'N/A');
+                                  final timestamp = r['timestampServidor'] as String?;
+                                  final fechaFormateada = timestamp != null
+                                      ? _formatearFecha(DateTime.parse(timestamp))
+                                      : 'Sin fecha';
+
                                   return ListTile(
-                                    leading: Icon(r['tipoChecada'] == 'Entrada' ? Icons.login : Icons.logout, color: r['tipoChecada'] == 'Entrada' ? Colors.green : Colors.orange),
-                                    title: Text('${r['empleado']} (${r['numeroEmpleado']})'),
-                                    subtitle: Text('${r['tipoChecada']} • ${_formatearFecha(DateTime.parse(r['timestampServidor']))}'),
+                                    leading: Icon(
+                                      tipo == 'Entrada' ? Icons.login : Icons.logout,
+                                      color: tipo == 'Entrada'
+                                          ? Colors.green
+                                          : Colors.orange,
+                                    ),
+                                    title: Text('$empleado ($numero)'),
+                                    subtitle: Text('$tipo • $fechaFormateada'),
                                   );
                                 },
                               ),
@@ -998,55 +1114,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _generarReporte() async {
     setState(() { _cargandoReporte = true; _reporteActual = null; });
     try {
-      final reporte = await ApiService.obtenerReporteJornada(fechaInicio: _fechaInicio, fechaFin: _fechaFin.add(const Duration(days: 1)));
+      final reporte = await ApiService.obtenerReporteJornada(
+        fechaInicio: _fechaInicio,
+        fechaFin: _fechaFin.add(const Duration(days: 1)),
+        cuentaId: _filtroEmpresa,
+        vendedorId: _filtroVendedor,
+        metodoUsado: _filtroMetodo,
+      );
       if (!mounted) return;
       setState(() => _reporteActual = reporte);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     } finally {
       if (mounted) setState(() => _cargandoReporte = false);
     }
   }
 
-  void _exportarCSV() {
-    if (_reporteActual == null) return;
-    final registros = _reporteActual!['registros'] as List;
-    final buffer = StringBuffer();
-    buffer.writeln('Empleado,NumeroEmpleado,TipoChecada,Timestamp,Metodo,PuntoLectura,Hash');
-    for (final r in registros) {
-      final empleado = (r['empleado'] as String).replaceAll(',', ' ');
-      final puntoLectura = (r['puntoLectura'] as String).replaceAll(',', ' ');
-      buffer.writeln('$empleado,${r['numeroEmpleado']},${r['tipoChecada']},${r['timestampServidor']},${r['metodoUsado']},$puntoLectura,${r['hashRegistro']}');
-    }
-    final ahora = DateTime.now();
-    final nombreArchivo = 'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}.csv';
-    final bytes = utf8.encode(buffer.toString());
-    final blob = html.Blob([bytes], 'text/csv');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    final anchor = html.document.createElement('a') as html.AnchorElement
-      ..href = url
-      ..style.display = 'none'
-      ..download = nombreArchivo;
-    html.document.body?.children.add(anchor);
-    anchor.click();
-    html.document.body?.children.remove(anchor);
-    html.Url.revokeObjectUrl(url);
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Reporte descargado: $nombreArchivo'), backgroundColor: Colors.green.shade700));
-  }
-
   Future<void> _generarFacturaDelMes() async {
     setState(() => _cargandoFacturas = true);
     try {
-      final response = await ApiService.generarFactura();
-      await _cargarFacturas();
+      final factura = await ApiService.generarFactura();  // ← Bien
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Factura generada: ${response['periodo']}'), backgroundColor: Colors.green.shade700));
+      setState(() {
+        _facturas.insert(0, factura);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Factura generada: ${factura['folio'] ?? 'N/A'}'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     } finally {
       if (mounted) setState(() => _cargandoFacturas = false);
+    }
+  }
+
+  Future<void> _exportarCSV() async {
+    if (_reporteActual == null) return;
+    final registros = _reporteActual!['registros'] as List;
+    final buffer = StringBuffer();
+
+    buffer.writeln('Empleado,NumeroEmpleado,TipoChecada,Timestamp,Metodo,Latitud,Longitud,Hash');
+
+    for (final r in registros) {
+      final empleado = (r['empleado'] as String? ?? '').replaceAll(',', ' ');
+      final tipo = (r['tipoChecada'] as String? ?? '');
+      final timestamp = (r['timestampServidor'] as String? ?? '');
+      final metodo = (r['metodoUsado'] as String? ?? '');
+      final latitud = r['latitud']?.toString() ?? '';
+      final longitud = r['longitud']?.toString() ?? '';
+      final hash = (r['hashRegistro'] as String? ?? '');
+      final numero = (r['numeroEmpleado'] as String? ?? '');
+
+      buffer.writeln('$empleado,$numero,$tipo,$timestamp,$metodo,$latitud,$longitud,$hash');
+    }
+
+    final ahora = DateTime.now();
+    final nombreArchivo = 'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}.csv';
+    
+    final bytes = Uint8List.fromList(utf8.encode(buffer.toString()));
+    
+    await FileSaver.instance.saveFile(
+      name: nombreArchivo,
+      bytes: bytes,
+      fileExtension: 'csv',    // ← BIEN
+      mimeType: MimeType.csv,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Reporte descargado: $nombreArchivo'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
     }
   }
 
@@ -1126,8 +1275,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       if (nombreController.text.trim().isEmpty || deviceIdController.text.trim().isEmpty) return;
                       setStateDialog(() => guardando = true);
                       try {
-                        final response = await ApiService.altaDirectaKiosko(nombre: nombreController.text.trim(), tipo: tipoSeleccionado, deviceId: deviceIdController.text.trim());
-                        setStateDialog(() { tokenGenerado = response['tokenPuntoLectura'] as String; guardando = false; });
+                        final response = await ApiService.altaDirectaKiosko(nombre: nombreController.text.trim(), tipo: tipoSeleccionado, deviceId: 						deviceIdController.text.trim());
+			setStateDialog(() { 
+			  tokenGenerado = response['tokenPuntoLectura'] as String? ?? 'Sin token'; 
+			  guardando = false; 
+			});
                         await _cargarKioskos();
                       } catch (e) {
                         setStateDialog(() => guardando = false);
@@ -1586,5 +1738,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _exportarExcel() async {
+    if (_reporteActual == null) return;
+    final registros = _reporteActual!['registros'] as List;
+
+    final buffer = StringBuffer();
+    buffer.writeln('<html><head><meta charset="UTF-8"></head><body>');
+    buffer.writeln('<table border="1">');
+    buffer.writeln('<tr>');
+    buffer.writeln('<th>Empleado</th>');
+    buffer.writeln('<th>Número</th>');
+    buffer.writeln('<th>Tipo</th>');
+    buffer.writeln('<th>Timestamp</th>');
+    buffer.writeln('<th>Método</th>');
+    buffer.writeln('<th>Latitud</th>');
+    buffer.writeln('<th>Longitud</th>');
+    buffer.writeln('<th>Hash</th>');
+    buffer.writeln('</tr>');
+
+    for (var r in registros) {
+      final empleado = (r['empleado'] as String? ?? '');
+      final numero = (r['numeroEmpleado'] as String? ?? '');
+      final tipo = (r['tipoChecada'] as String? ?? '');
+      final timestamp = (r['timestampServidor'] as String? ?? '');
+      final metodo = (r['metodoUsado'] as String? ?? '');
+      final latitud = r['latitud']?.toString() ?? '';
+      final longitud = r['longitud']?.toString() ?? '';
+      final hash = (r['hashRegistro'] as String? ?? '');
+
+      buffer.writeln('<tr>');
+      buffer.writeln('<td>$empleado</td>');
+      buffer.writeln('<td>$numero</td>');
+      buffer.writeln('<td>$tipo</td>');
+      buffer.writeln('<td>$timestamp</td>');
+      buffer.writeln('<td>$metodo</td>');
+      buffer.writeln('<td>$latitud</td>');
+      buffer.writeln('<td>$longitud</td>');
+      buffer.writeln('<td>$hash</td>');
+      buffer.writeln('</tr>');
+    }
+
+    buffer.writeln('</table></body></html>');
+
+    final ahora = DateTime.now();
+    final nombreArchivo = 'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}';
+    
+    final bytes = Uint8List.fromList(utf8.encode(buffer.toString()));
+    
+    await FileSaver.instance.saveFile(
+      name: nombreArchivo,
+      bytes: bytes,
+      fileExtension: 'xls',    // ← BIEN
+      mimeType: MimeType.microsoftExcel,
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Reporte Excel descargado: $nombreArchivo.xls'),
+          backgroundColor: Colors.green.shade700,
+        ),
+      );
+    }
+  }
+
+  String _formatearFechaSimple(DateTime d) {
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
   }
 }
