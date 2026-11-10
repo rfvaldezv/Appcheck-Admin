@@ -916,27 +916,30 @@ const DropdownMenuItem<String>(value: null, child: Text('Todos')),
                                 itemCount: _reporteActual!['registros'].length,
                                 separatorBuilder: (_, _) =>
                                     const Divider(height: 1),
-                                itemBuilder: (context, index) {
-                                  final r = _reporteActual!['registros'][index];
-                                  final tipo = (r['tipoChecada'] as String? ?? 'N/A');
-                                  final empleado = (r['empleado'] as String? ?? 'Sin nombre');
-                                  final numero = (r['numeroEmpleado'] as String? ?? 'N/A');
-                                  final timestamp = r['timestampServidor'] as String?;
-                                  final fechaFormateada = timestamp != null
-                                      ? _formatearFecha(DateTime.parse(timestamp))
-                                      : 'Sin fecha';
+itemBuilder: (context, index) {
+  final r = _reporteActual!['registros'][index];
+  final tipo = (r['tipoChecada'] as String? ?? 'N/A');
+  final empleado = (r['empleado'] as String? ?? 'Sin nombre');
+  final numero = (r['numeroEmpleado'] as String? ?? 'N/A');
+  final timestamp = r['timestampServidor'] as String?;
+  final fechaFormateada = timestamp != null
+      ? _formatearFecha(DateTime.parse(timestamp))
+      : 'Sin fecha';
 
-                                  return ListTile(
-                                    leading: Icon(
-                                      tipo == 'Entrada' ? Icons.login : Icons.logout,
-                                      color: tipo == 'Entrada'
-                                          ? Colors.green
-                                          : Colors.orange,
-                                    ),
-                                    title: Text('$empleado ($numero)'),
-                                    subtitle: Text('$tipo • $fechaFormateada'),
-                                  );
-                                },
+  return ListTile(
+    leading: Icon(
+      tipo == 'Entrada' ? Icons.login : Icons.logout,
+      color: tipo == 'Entrada' ? Colors.green : Colors.orange,
+    ),
+    title: Text('$empleado ($numero)'),
+    subtitle: Text('$tipo • $fechaFormateada'),
+    trailing: IconButton(
+      icon: const Icon(Icons.edit, color: Colors.blue),
+      tooltip: 'Editar checada',
+      onPressed: () => _editarChecada(r),
+    ),
+  );
+},
                               ),
                             ),
                           ),
@@ -1806,5 +1809,185 @@ const DropdownMenuItem<String>(value: null, child: Text('Todos')),
 
   String _formatearFechaSimple(DateTime d) {
     return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+  }
+
+  Future<void> _editarChecada(Map<String, dynamic> registro) async {
+    final tipoController = TextEditingController(text: registro['tipoChecada'] ?? 'Entrada');
+    final motivoController = TextEditingController();
+    
+    // Parsear el timestamp actual
+    DateTime? timestampSeleccionado;
+    final timestampStr = registro['timestampServidor'] as String?;
+    if (timestampStr != null) {
+      try {
+        timestampSeleccionado = DateTime.parse(timestampStr).toLocal();
+      } catch (_) {
+        timestampSeleccionado = DateTime.now();
+      }
+    }
+    
+    bool guardando = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Editar Checada'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Empleado: ${registro['empleado']} (${registro['numeroEmpleado']})',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text('Empresa: ${registro['empresa'] ?? 'N/A'}'),
+                const SizedBox(height: 16),
+                const Divider(),
+                const SizedBox(height: 16),
+                
+                // Tipo de checada
+                DropdownButtonFormField<String>(
+                  value: tipoController.text,
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de checada',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Entrada', child: Text('Entrada')),
+                    DropdownMenuItem(value: 'Salida', child: Text('Salida')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => tipoController.text = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                
+                // Fecha y hora del registro
+                InkWell(
+                  onTap: () async {
+                    final fecha = await showDatePicker(
+                      context: context,
+                      initialDate: timestampSeleccionado ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (fecha == null) return;
+                    
+                    if (!context.mounted) return;
+                    final hora = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(
+                        timestampSeleccionado ?? DateTime.now(),
+                      ),
+                    );
+                    if (hora == null) return;
+                    
+                    setDialogState(() {
+                      timestampSeleccionado = DateTime(
+                        fecha.year, fecha.month, fecha.day,
+                        hora.hour, hora.minute,
+                      );
+                    });
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha y hora del registro',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    child: Text(
+                      timestampSeleccionado != null
+                          ? '${timestampSeleccionado!.day.toString().padLeft(2, '0')}/${timestampSeleccionado!.month.toString().padLeft(2, '0')}/${timestampSeleccionado!.year} ${timestampSeleccionado!.hour.toString().padLeft(2, '0')}:${timestampSeleccionado!.minute.toString().padLeft(2, '0')}'
+                          : 'Sin fecha',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // Motivo
+                TextField(
+                  controller: motivoController,
+                  decoration: const InputDecoration(
+                    labelText: 'Motivo de la corrección',
+                    hintText: 'Ej. El empleado marcó entrada por error',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Nota: La corrección quedará registrada en la bitácora de auditoría.',
+                  style: TextStyle(fontSize: 12, color: Colors.black54, fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: guardando ? null : () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: guardando
+                  ? null
+                  : () async {
+                      setDialogState(() => guardando = true);
+                      try {
+                        // Convertir el timestamp a UTC (ISO 8601)
+                        final timestampUtc = timestampSeleccionado?.toUtc().toIso8601String();
+                        
+                        await ApiService.editarChecada(
+                          registroId: registro['registroId'],
+                          tipoChecada: tipoController.text,
+                          timestampServidor: timestampUtc,
+                          motivoCorreccion: motivoController.text.trim().isEmpty
+                              ? null
+                              : motivoController.text.trim(),
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Checada editada correctamente'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          _generarReporte();
+                        }
+                      } catch (e) {
+                        setDialogState(() => guardando = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F766E),
+                foregroundColor: Colors.white,
+              ),
+              child: guardando
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

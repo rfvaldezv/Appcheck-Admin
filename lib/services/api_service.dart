@@ -315,4 +315,25 @@ class ApiService {
     );
     if (response.statusCode != 200) throw Exception('Error al marcar factura como pagada');
   }
+
+  static Future<Map<String, dynamic>> editarChecada({
+    required String registroId,
+    required String tipoChecada,
+    String? timestampServidor,
+    String? motivoCorreccion,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/checada/$registroId'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'tipoChecada': tipoChecada,
+        if (timestampServidor != null) 'timestampServidor': timestampServidor,
+        'motivoCorreccion': motivoCorreccion,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar checada');
+  }
 }
