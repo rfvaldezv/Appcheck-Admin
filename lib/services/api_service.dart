@@ -336,4 +336,23 @@ class ApiService {
     }
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar checada');
   }
+
+  // =====================================================
+  // DASHBOARD (KPIs + gráficos)
+  // =====================================================
+  static Future<Map<String, dynamic>> obtenerDashboard({
+    DateTime? fechaInicio,
+    DateTime? fechaFin,
+  }) async {
+    final queryParams = {
+      if (fechaInicio != null) 'fechaInicio': fechaInicio.toIso8601String(),
+      if (fechaFin != null) 'fechaFin': fechaFin.toIso8601String(),
+    };
+    final uri = Uri.parse('$baseUrl/api/analytics/dashboard').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Error al obtener dashboard');
+  }
 }

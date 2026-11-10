@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_saver/file_saver.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
+import 'dashboard_home_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -350,7 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildContenido(bool isDesktop) {
     switch (_seccionActual) {
-      case 0: return _buildResumen(isDesktop);
+      case 0: return const DashboardHomeScreen();
       case 1: return _buildKioskos(isDesktop);
       case 2: return _buildEmpleados(isDesktop);
       case 3: return _buildReportes();
