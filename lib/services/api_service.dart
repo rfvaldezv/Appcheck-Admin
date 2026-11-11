@@ -511,4 +511,74 @@ class ApiService {
       throw Exception('Error al asignar turno: ${response.body}');
     }
   }
+
+  // =====================================================
+  // EDITAR Y ELIMINAR SUCURSALES
+  // =====================================================
+  static Future<void> editarSucursal({
+    required String id,
+    required String nombre,
+    String? direccion,
+    double? latitud,
+    double? longitud,
+    int? radioMetros,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/Sucursal/$id'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'nombre': nombre,
+        'direccion': direccion,
+        'latitud': latitud,
+        'longitud': longitud,
+        'radioMetros': radioMetros ?? 100,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al editar sucursal');
+    }
+  }
+
+  static Future<void> eliminarSucursal(String id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/Sucursal/$id'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al eliminar sucursal');
+    }
+  }
+
+  // =====================================================
+  // EDITAR Y ELIMINAR TURNOS
+  // =====================================================
+  static Future<void> editarTurno({
+    required String id,
+    required String nombre,
+    required String colorHex,
+    required List<Map<String, dynamic>> detalles,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/Turno/$id'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'nombre': nombre,
+        'colorHex': colorHex,
+        'detalles': detalles,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al editar turno');
+    }
+  }
+
+  static Future<void> eliminarTurno(String id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/Turno/$id'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al eliminar turno');
+    }
+  }
 }

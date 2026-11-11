@@ -57,7 +57,7 @@ class _CatalogoSucursalesScreenState extends State<CatalogoSucursalesScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       ElevatedButton.icon(
-                        onPressed: _mostrarModalNuevaSucursal,
+                        onPressed: () => _mostrarModalSucursal(),
                         icon: const Icon(Icons.add),
                         label: const Text('Nueva Sucursal'),
                         style: ElevatedButton.styleFrom(
@@ -88,9 +88,20 @@ class _CatalogoSucursalesScreenState extends State<CatalogoSucursalesScreen> {
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 subtitle: Text(s['direccion'] ?? 'Sin dirección registrada'),
-                                trailing: Text(
-                                  'Radio: ${s['radioMetros']}m',
-                                  style: const TextStyle(color: Colors.grey),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text('Radio: ${s['radioMetros']}m', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                    const SizedBox(width: 8),
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
+                                      onPressed: () => _mostrarModalSucursal(sucursal: s),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () => _eliminarSucursal(s),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -102,95 +113,101 @@ class _CatalogoSucursalesScreenState extends State<CatalogoSucursalesScreen> {
     );
   }
 
-  void _mostrarModalNuevaSucursal() {
-    final nombreCtrl = TextEditingController();
-    final dirCtrl = TextEditingController();
-    final latCtrl = TextEditingController();
-    final lngCtrl = TextEditingController();
-    final radioCtrl = TextEditingController(text: '100');
+  void _mostrarModalSucursal({dynamic sucursal}) {
+    final nombreCtrl = TextEditingController(text: sucursal?['nombre']);
+    final dirCtrl = TextEditingController(text: sucursal?['direccion']);
+    final latCtrl = TextEditingController(text: sucursal?['latitud']?.toString());
+    final lngCtrl = TextEditingController(text: sucursal?['longitud']?.toString());
+    final radioCtrl = TextEditingController(text: sucursal?['radioMetros']?.toString() ?? '100');
+    final esEdicion = sucursal != null;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Nueva Sucursal'),
+        title: Text(esEdicion ? 'Editar Sucursal' : 'Nueva Sucursal'),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
-                controller: nombreCtrl,
-                decoration: const InputDecoration(labelText: 'Nombre (Obligatorio)', border: OutlineInputBorder()),
-              ),
+              TextField(controller: nombreCtrl, decoration: const InputDecoration(labelText: 'Nombre', border: OutlineInputBorder())),
               const SizedBox(height: 12),
-              TextField(
-                controller: dirCtrl,
-                decoration: const InputDecoration(labelText: 'Dirección (Opcional)', border: OutlineInputBorder()),
-              ),
+              TextField(controller: dirCtrl, decoration: const InputDecoration(labelText: 'Dirección', border: OutlineInputBorder())),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Expanded(
-                    child: TextField(
-                      controller: latCtrl,
-                      decoration: const InputDecoration(labelText: 'Latitud', border: OutlineInputBorder()),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
+                  Expanded(child: TextField(controller: latCtrl, decoration: const InputDecoration(labelText: 'Latitud', border: OutlineInputBorder()), keyboardType: const TextInputType.numberWithOptions(decimal: true))),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: lngCtrl,
-                      decoration: const InputDecoration(labelText: 'Longitud', border: OutlineInputBorder()),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    ),
-                  ),
+                  Expanded(child: TextField(controller: lngCtrl, decoration: const InputDecoration(labelText: 'Longitud', border: OutlineInputBorder()), keyboardType: const TextInputType.numberWithOptions(decimal: true))),
                 ],
               ),
               const SizedBox(height: 12),
-              TextField(
-                controller: radioCtrl,
-                decoration: const InputDecoration(labelText: 'Radio permitido (metros)', border: OutlineInputBorder()),
-                keyboardType: TextInputType.number,
-              ),
+              TextField(controller: radioCtrl, decoration: const InputDecoration(labelText: 'Radio (metros)', border: OutlineInputBorder()), keyboardType: TextInputType.number),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
           ElevatedButton(
             onPressed: () async {
-              if (nombreCtrl.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('El nombre es obligatorio'), backgroundColor: Colors.red),
-                );
-                return;
-              }
+              if (nombreCtrl.text.trim().isEmpty) return;
               try {
-                await ApiService.crearSucursal(
-                  nombre: nombreCtrl.text.trim(),
-                  direccion: dirCtrl.text.trim().isEmpty ? null : dirCtrl.text.trim(),
-                  latitud: double.tryParse(latCtrl.text),
-                  longitud: double.tryParse(lngCtrl.text),
-                  radioMetros: int.tryParse(radioCtrl.text) ?? 100,
-                );
+                if (esEdicion) {
+                  await ApiService.editarSucursal(
+                    id: sucursal['sucursalId'],
+                    nombre: nombreCtrl.text.trim(),
+                    direccion: dirCtrl.text.trim().isEmpty ? null : dirCtrl.text.trim(),
+                    latitud: double.tryParse(latCtrl.text),
+                    longitud: double.tryParse(lngCtrl.text),
+                    radioMetros: int.tryParse(radioCtrl.text) ?? 100,
+                  );
+                } else {
+                  await ApiService.crearSucursal(
+                    nombre: nombreCtrl.text.trim(),
+                    direccion: dirCtrl.text.trim().isEmpty ? null : dirCtrl.text.trim(),
+                    latitud: double.tryParse(latCtrl.text),
+                    longitud: double.tryParse(lngCtrl.text),
+                    radioMetros: int.tryParse(radioCtrl.text) ?? 100,
+                  );
+                }
                 if (context.mounted) Navigator.pop(context);
                 _cargarSucursales();
               } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                  );
-                }
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
-            child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+            child: Text(esEdicion ? 'Guardar' : 'Crear', style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _eliminarSucursal(dynamic sucursal) async {
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Sucursal'),
+        content: Text('¿Estás seguro de eliminar "${sucursal['nombre']}"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar == true) {
+      try {
+        await ApiService.eliminarSucursal(sucursal['sucursalId']);
+        _cargarSucursales();
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Sucursal eliminada')));
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 }
