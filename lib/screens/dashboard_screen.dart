@@ -8,6 +8,7 @@ import 'login_screen.dart';
 import 'dashboard_home_screen.dart';
 import 'catalogo_sucursales_screen.dart';
 import 'catalogo_turnos_screen.dart';
+import 'asistencia_diaria_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -369,6 +370,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
           _menuItem(2, Icons.people, 'Empleados'),
           _menuItem(3, Icons.file_download, 'Reportes STPS'),
+	  ListTile(
+	    leading: const Icon(Icons.assessment, color: Colors.white70),
+	    title: const Text('Asistencia Diaria', style: TextStyle(color: Colors.white)),
+	    onTap: () {
+	      Navigator.push(
+	        context,
+	        MaterialPageRoute(builder: (context) => const AsistenciaDiariaScreen()),
+	      );
+	    },
+	  ),
           _menuItem(4, Icons.receipt_long, 'Mi Suscripción'), // Corregido acento
           _menuItem(5, Icons.fact_check, 'Facturas'),
           const Spacer(),

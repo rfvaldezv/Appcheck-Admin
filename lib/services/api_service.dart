@@ -581,4 +581,29 @@ class ApiService {
       throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al eliminar turno');
     }
   }
+
+  // =====================================================
+  // ASISTENCIA DIARIA
+  // =====================================================
+  static Future<Map<String, dynamic>> obtenerAsistenciaPorPeriodo({
+    DateTime? fechaInicio,
+    DateTime? fechaFin,
+    String? cuentaId,
+    String? sucursalId,
+    String? empleadoId,
+  }) async {
+    final queryParams = {
+      if (fechaInicio != null) 'fechaInicio': fechaInicio.toIso8601String().split('T')[0],
+      if (fechaFin != null) 'fechaFin': fechaFin.toIso8601String().split('T')[0],
+      if (cuentaId != null) 'cuentaId': cuentaId,
+      if (sucursalId != null) 'sucursalId': sucursalId,
+      if (empleadoId != null) 'empleadoId': empleadoId,
+    };
+    final uri = Uri.parse('$baseUrl/api/analytics/asistencia').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Error al obtener asistencia');
+  }
 }
