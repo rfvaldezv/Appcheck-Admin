@@ -29,11 +29,11 @@ class ApiService {
       body: jsonEncode({'email': email, 'password': password}),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       _token = data['token'];
       return data;
     }
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al iniciar sesión');
+    throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al iniciar sesión');
   }
 
   // =====================================================
@@ -45,7 +45,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       // Backend devuelve {value: [...], Count: N}
       if (data is Map && data['value'] is List) return data['value'];
       // O devuelve un array directo
@@ -64,7 +64,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       // Backend devuelve un array directo
       if (data is List) return data;
       // O devuelve {value: [...], Count: N}
@@ -80,8 +80,8 @@ class ApiService {
       headers: _headers(withAuth: true),
       body: jsonEncode({'nombre': nombre, 'tipo': tipo}),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al generar código');
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+    throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al generar código');
   }
 
   static Future<Map<String, dynamic>> altaDirectaKiosko({
@@ -94,8 +94,8 @@ class ApiService {
       headers: _headers(withAuth: true),
       body: jsonEncode({'nombre': nombre, 'tipo': tipo, 'deviceId': deviceId}),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al dar de alta kiosko');
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+    throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al dar de alta kiosko');
   }
 
   static Future<void> editarKiosko({required String id, required String nombre, required String tipo}) async {
@@ -128,7 +128,7 @@ class ApiService {
       Uri.parse('$baseUrl/api/kiosko/$id/regenerar-codigo'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
     throw Exception('Error al regenerar código');
   }
 
@@ -137,7 +137,7 @@ class ApiService {
       Uri.parse('$baseUrl/api/kiosko/limpiar-inactivos'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
     throw Exception('Error al limpiar inactivos');
   }
 
@@ -159,8 +159,8 @@ class ApiService {
         'fotoBase64': fotoBase64,
       }),
     ).timeout(const Duration(seconds: 120));
-    if (response.statusCode == 200) return jsonDecode(response.body);
-    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al dar de alta empleado');
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+    throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al dar de alta empleado');
   }
 
   static Future<void> editarEmpleado({
@@ -183,7 +183,7 @@ class ApiService {
       }),
     ).timeout(const Duration(seconds: 120));
     if (response.statusCode != 200) {
-      throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar empleado');
+      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al editar empleado');
     }
   }
 
@@ -217,7 +217,7 @@ class ApiService {
     final uri = Uri.parse('$baseUrl/api/checada/reporte').replace(queryParameters: queryParams);
     final response = await http.get(uri, headers: _headers(withAuth: true));
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return (data is Map<String, dynamic>) ? data : {'registros': [], 'totalRegistros': 0};
     }
     throw Exception('Error al obtener reporte');
@@ -232,7 +232,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return (data is List) ? data : [];
     }
     return [];
@@ -244,7 +244,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return (data is List) ? data : [];
     }
     return [];
@@ -259,7 +259,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return (data is List) ? data : [];
     }
     throw Exception('Error al listar planes');
@@ -271,7 +271,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return (data is Map<String, dynamic>) ? data : {};
     }
     throw Exception('Error al obtener suscripción');
@@ -283,7 +283,7 @@ class ApiService {
       headers: _headers(withAuth: true),
       body: jsonEncode({'cuentaId': cuentaId, 'planId': planId}),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
     throw Exception('Error al asignar plan');
   }
 
@@ -293,7 +293,7 @@ class ApiService {
       headers: _headers(withAuth: true),
     );
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      final data = jsonDecode(utf8.decode(response.bodyBytes));
       return (data is List) ? data : [];
     }
     throw Exception('Error al listar facturas');
@@ -304,7 +304,7 @@ class ApiService {
       Uri.parse('$baseUrl/api/facturacion/facturas/generar'),
       headers: _headers(withAuth: true),
     );
-    if (response.statusCode == 200) return jsonDecode(response.body);
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
     throw Exception('Error al generar factura');
   }
 
@@ -332,7 +332,7 @@ class ApiService {
       }),
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
     }
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al editar checada');
   }
@@ -351,8 +351,53 @@ class ApiService {
     final uri = Uri.parse('$baseUrl/api/analytics/dashboard').replace(queryParameters: queryParams);
     final response = await http.get(uri, headers: _headers(withAuth: true));
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return jsonDecode(utf8.decode(response.bodyBytes));
     }
     throw Exception('Error al obtener dashboard');
+  }
+
+  // =====================================================
+  // ELIMINAR CHECADA (solo RH)
+  // =====================================================
+  static Future<Map<String, dynamic>> eliminarChecada({
+    required String registroId,
+    String? motivo,
+  }) async {
+    final queryParams = {
+      if (motivo != null) 'motivo': motivo,
+    };
+    final uri = Uri.parse('$baseUrl/api/checada/$registroId').replace(queryParameters: queryParams);
+    final response = await http.delete(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al eliminar checada');
+  }
+
+  // =====================================================
+  // CREAR CHECADA MANUAL (solo RH)
+  // =====================================================
+  static Future<Map<String, dynamic>> crearChecadaManual({
+    required String empleadoId,
+    required String tipoChecada,
+    required String timestampServidor,
+    String? metodoUsado,
+    String? motivoCreacion,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/checada/manual'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'empleadoId': empleadoId,
+        'tipoChecada': tipoChecada,
+        'timestampServidor': timestampServidor,
+        if (metodoUsado != null) 'metodoUsado': metodoUsado,
+        if (motivoCreacion != null) 'motivoCreacion': motivoCreacion,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al crear checada');
   }
 }

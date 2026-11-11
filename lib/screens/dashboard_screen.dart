@@ -17,8 +17,6 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   int _seccionActual = 0;
-  int _totalKioskos = 0;
-  int _totalEmpleados = 0;
   bool _cargando = true;
   String? _error;
 
@@ -39,7 +37,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String? _filtroMetodo;
   List<dynamic> _empresas = [];
   List<dynamic> _vendedores = [];
-  final List<String> _metodos = ['QR', 'QR+Rostro', 'ID+PIN', 'ID+Rostro', 'Rostro', 'Huella'];
+  final List<String> _metodos = [
+    'QR',
+    'QR+Rostro',
+    'ID+PIN',
+    'ID+Rostro',
+    'Rostro',
+    'Huella',
+  ];
 
   Map<String, dynamic>? _suscripcionActual;
   bool _cargandoSuscripcion = false;
@@ -47,7 +52,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<dynamic> _facturas = [];
   bool _cargandoFacturas = false;
 
-  DateTime _fechaInicio = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime _fechaInicio = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+    1,
+  );
   DateTime _fechaFin = DateTime.now();
   bool _cargandoReporte = false;
   Map<String, dynamic>? _reporteActual;
@@ -82,12 +91,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       _error = null;
     });
     try {
-      final kioskos = await ApiService.listarKioskos() ?? [];
-      final empleados = await ApiService.listarEmpleados() ?? [];
+      final kioskos = await ApiService.listarKioskos();
+      final empleados = await ApiService.listarEmpleados();
       if (!mounted) return;
       setState(() {
-        _totalKioskos = kioskos.length;
-        _totalEmpleados = empleados.length;
         _kioskos = kioskos;
         _empleados = empleados;
         _cargando = false;
@@ -207,8 +214,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: _cargando
                         ? const Center(child: CircularProgressIndicator())
                         : _error != null
-                            ? Center(child: Text('Error: $_error', style: const TextStyle(color: Colors.red)))
-                            : _buildContenido(isDesktop),
+                        ? Center(
+                            child: Text(
+                              'Error: $_error',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          )
+                        : _buildContenido(isDesktop),
                   ),
                 ],
               ),
@@ -233,7 +245,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Icon(Icons.qr_code_scanner, size: 50, color: Colors.white),
                   SizedBox(height: 8),
-                  Text('AppCheck', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                  Text(
+                    'AppCheck',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -241,12 +260,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _menuItem(1, Icons.devices, 'Kioskos'),
             _menuItem(2, Icons.people, 'Empleados'),
             _menuItem(3, Icons.file_download, 'Reportes STPS'),
-            _menuItem(4, Icons.receipt_long, 'Mi Suscripción'),
+            _menuItem(4, Icons.receipt_long, 'Mi SuscripciÃ³n'),
             _menuItem(5, Icons.fact_check, 'Facturas'),
             const Divider(color: Colors.white24),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.white70),
-              title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white70)),
+              title: const Text(
+                'Cerrar SesiÃ³n',
+                style: TextStyle(color: Colors.white70),
+              ),
               onTap: _cerrarSesion,
             ),
           ],
@@ -264,20 +286,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 40),
           const Icon(Icons.qr_code_scanner, size: 60, color: Colors.white),
           const SizedBox(height: 8),
-          const Text('AppCheck', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-          const Text('Admin Panel', style: TextStyle(color: Colors.white70, fontSize: 14)),
+          const Text(
+            'AppCheck',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const Text(
+            'Admin Panel',
+            style: TextStyle(color: Colors.white70, fontSize: 14),
+          ),
           const SizedBox(height: 40),
           _menuItem(0, Icons.dashboard, 'Resumen'),
           _menuItem(1, Icons.devices, 'Kioskos'),
           _menuItem(2, Icons.people, 'Empleados'),
           _menuItem(3, Icons.file_download, 'Reportes STPS'),
-          _menuItem(4, Icons.receipt_long, 'Mi Suscripción'),
+          _menuItem(4, Icons.receipt_long, 'Mi SuscripciÃ³n'),
           _menuItem(5, Icons.fact_check, 'Facturas'),
           const Spacer(),
           const Divider(color: Colors.white24),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.white70),
-            title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white70)),
+            title: const Text(
+              'Cerrar SesiÃ³n',
+              style: TextStyle(color: Colors.white70),
+            ),
             onTap: _cerrarSesion,
           ),
           const SizedBox(height: 20),
@@ -291,7 +326,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: seleccionado ? Colors.white.withValues(alpha: 0.2) : Colors.transparent,
+        color: seleccionado
+            ? Colors.white.withValues(alpha: 0.2)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
@@ -318,12 +355,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(_getTituloSeccion(), style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(
+            _getTituloSeccion(),
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
           Row(
             children: [
               const Icon(Icons.person, color: Colors.black54),
               const SizedBox(width: 8),
-              Text(widget.usuario['nombre'] ?? 'Usuario', style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                widget.usuario['nombre'] ?? 'Usuario',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(width: 16),
               Chip(
                 label: Text(widget.usuario['rol'] ?? 'Rol'),
@@ -339,88 +382,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _getTituloSeccion() {
     switch (_seccionActual) {
-      case 0: return 'Resumen General';
-      case 1: return 'Gestión de Kioskos';
-      case 2: return 'Gestión de Empleados';
-      case 3: return 'Reportes STPS';
-      case 4: return 'Mi Suscripción';
-      case 5: return 'Facturas';
-      default: return 'Dashboard';
+      case 0:
+        return 'Resumen General';
+      case 1:
+        return 'GestiÃ³n de Kioskos';
+      case 2:
+        return 'GestiÃ³n de Empleados';
+      case 3:
+        return 'Reportes STPS';
+      case 4:
+        return 'Mi SuscripciÃ³n';
+      case 5:
+        return 'Facturas';
+      default:
+        return 'Dashboard';
     }
   }
 
   Widget _buildContenido(bool isDesktop) {
     switch (_seccionActual) {
-      case 0: return const DashboardHomeScreen();
-      case 1: return _buildKioskos(isDesktop);
-      case 2: return _buildEmpleados(isDesktop);
-      case 3: return _buildReportes();
-      case 4: return _buildMiSuscripcion();
-      case 5: return _buildFacturas();
-      default: return const SizedBox();
+      case 0:
+        return const DashboardHomeScreen();
+      case 1:
+        return _buildKioskos(isDesktop);
+      case 2:
+        return _buildEmpleados(isDesktop);
+      case 3:
+        return _buildReportes();
+      case 4:
+        return _buildMiSuscripcion();
+      case 5:
+        return _buildFacturas();
+      default:
+        return const SizedBox();
     }
-  }
-
-  Widget _buildResumen(bool isDesktop) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          isDesktop
-              ? Row(
-                  children: [
-                    _tarjetaResumen('Kioskos Activos', _totalKioskos.toString(), Icons.devices, const Color(0xFF0F766E)),
-                    const SizedBox(width: 24),
-                    _tarjetaResumen('Empleados', _totalEmpleados.toString(), Icons.people, const Color(0xFFF59E0B)),
-                    const SizedBox(width: 24),
-                    _tarjetaResumen('Cumplimiento', '100%', Icons.verified, const Color(0xFF3B82F6)),
-                  ],
-                )
-              : Column(
-                  children: [
-                    _tarjetaResumen('Kioskos Activos', _totalKioskos.toString(), Icons.devices, const Color(0xFF0F766E)),
-                    const SizedBox(height: 16),
-                    _tarjetaResumen('Empleados', _totalEmpleados.toString(), Icons.people, const Color(0xFFF59E0B)),
-                    const SizedBox(height: 16),
-                    _tarjetaResumen('Cumplimiento', '100%', Icons.verified, const Color(0xFF3B82F6)),
-                  ],
-                ),
-          const SizedBox(height: 40),
-          const Text('Bienvenido a AppCheck', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text('Selecciona una opción del menú para comenzar.', style: TextStyle(color: Colors.black54)),
-        ],
-      ),
-    );
-  }
-
-  Widget _tarjetaResumen(String titulo, String valor, IconData icono, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icono, color: color, size: 32),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(titulo, style: const TextStyle(color: Colors.black54, fontSize: 14)),
-              Text(valor, style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildKioskos(bool isDesktop) {
@@ -437,7 +432,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Kioskos', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Kioskos',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               Row(
                 children: [
                   ElevatedButton.icon(
@@ -447,7 +445,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue.shade700,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -458,13 +459,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         await _cargarKioskos();
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(response['mensaje']), backgroundColor: Colors.green),
+                            SnackBar(
+                              content: Text(response['mensaje']),
+                              backgroundColor: Colors.green,
+                            ),
                           );
                         }
                       } catch (e) {
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                            SnackBar(
+                              content: Text('Error: $e'),
+                              backgroundColor: Colors.red,
+                            ),
                           );
                         }
                       }
@@ -474,7 +481,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey.shade700,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
                     ),
                   ),
                 ],
@@ -486,7 +496,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             decoration: InputDecoration(
               labelText: 'Buscar kiosko por nombre...',
               prefixIcon: const Icon(Icons.search),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
               filled: true,
               fillColor: Colors.white,
             ),
@@ -497,70 +509,109 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: _cargandoKioskos
                 ? const Center(child: CircularProgressIndicator())
                 : kioskosFiltrados.isEmpty
-                    ? Center(
-                        child: Text(
-                          _kioskos.isEmpty
-                              ? 'No hay kioskos registrados todavía.\nUsa "Alta Directa" para crear uno.'
-                              : 'No se encontraron kioskos con ese nombre.',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.black54, fontSize: 16),
-                        ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                        ),
-                        child: ListView.separated(
-                          itemCount: kioskosFiltrados.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final kiosko = kioskosFiltrados[index];
-                            return ListTile(
-                              leading: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF0F766E).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.devices, color: Color(0xFF0F766E)),
-                              ),
-                              title: Text(kiosko['nombre'] ?? 'Kiosko sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('${kiosko['tipo']} • Device: ${kiosko['deviceId'] ?? 'N/A'}', style: const TextStyle(fontSize: 12)),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isDesktop) _chipEstado(kiosko['estadoLicencia'] ?? 'Desconocido'),
-                                  const SizedBox(width: 8),
-                                  if (kiosko['estadoLicencia'] == 'Pendiente' || kiosko['estadoLicencia'] == 'Suspendido')
-                                    IconButton(
-                                      icon: const Icon(Icons.vpn_key, color: Colors.purple),
-                                      tooltip: 'Regenerar código',
-                                      onPressed: () => _regenerarCodigoYMostrar(kiosko),
-                                    ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.blue),
-                                    tooltip: 'Editar',
-                                    onPressed: () => _mostrarDialogoEditarKiosko(kiosko),
-                                  ),
-                                  if (kiosko['estadoLicencia'] == 'Activa')
-                                    IconButton(
-                                      icon: const Icon(Icons.block, color: Colors.orange),
-                                      tooltip: 'Revocar',
-                                      onPressed: () => _revocarKiosko(kiosko['puntoLecturaId']),
-                                    ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_forever, color: Colors.red),
-                                    tooltip: 'Eliminar',
-                                    onPressed: () => _eliminarKiosko(kiosko['puntoLecturaId']),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
+                ? Center(
+                    child: Text(
+                      _kioskos.isEmpty
+                          ? 'No hay kioskos registrados todavÃ­a.\nUsa "Alta Directa" para crear uno.'
+                          : 'No se encontraron kioskos con ese nombre.',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontSize: 16,
                       ),
+                    ),
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: ListView.separated(
+                      itemCount: kioskosFiltrados.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final kiosko = kioskosFiltrados[index];
+                        return ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF0F766E,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.devices,
+                              color: Color(0xFF0F766E),
+                            ),
+                          ),
+                          title: Text(
+                            kiosko['nombre'] ?? 'Kiosko sin nombre',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            '${kiosko['tipo']} â€¢ Device: ${kiosko['deviceId'] ?? 'N/A'}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isDesktop)
+                                _chipEstado(
+                                  kiosko['estadoLicencia'] ?? 'Desconocido',
+                                ),
+                              const SizedBox(width: 8),
+                              if (kiosko['estadoLicencia'] == 'Pendiente' ||
+                                  kiosko['estadoLicencia'] == 'Suspendido')
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.vpn_key,
+                                    color: Colors.purple,
+                                  ),
+                                  tooltip: 'Regenerar cÃ³digo',
+                                  onPressed: () =>
+                                      _regenerarCodigoYMostrar(kiosko),
+                                ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                tooltip: 'Editar',
+                                onPressed: () =>
+                                    _mostrarDialogoEditarKiosko(kiosko),
+                              ),
+                              if (kiosko['estadoLicencia'] == 'Activa')
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.block,
+                                    color: Colors.orange,
+                                  ),
+                                  tooltip: 'Revocar',
+                                  onPressed: () =>
+                                      _revocarKiosko(kiosko['puntoLecturaId']),
+                                ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_forever,
+                                  color: Colors.red,
+                                ),
+                                tooltip: 'Eliminar',
+                                onPressed: () =>
+                                    _eliminarKiosko(kiosko['puntoLecturaId']),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -568,25 +619,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildEmpleados(bool isDesktop) {
-    final empresas = _empleados.map((e) => e['empresa'] ?? 'N/A').toSet().toList();
-    final vendedores = _empleados.map((e) => e['vendedor'] ?? 'Sin vendedor').toSet().toList();
+    final empresas = _empleados
+        .map((e) => e['empresa'] ?? 'N/A')
+        .toSet()
+        .toList();
+    final vendedores = _empleados
+        .map((e) => e['vendedor'] ?? 'Sin vendedor')
+        .toSet()
+        .toList();
 
     final empleadosFiltrados = _empleados.where((e) {
       final nombre = (e['nombreCompleto'] ?? '').toString().toLowerCase();
       final numero = (e['numeroEmpleado'] ?? '').toString().toLowerCase();
-      final coincideTexto = nombre.contains(_filtroEmpleados.toLowerCase()) ||
-                            numero.contains(_filtroEmpleados.toLowerCase());
-      
+      final coincideTexto =
+          nombre.contains(_filtroEmpleados.toLowerCase()) ||
+          numero.contains(_filtroEmpleados.toLowerCase());
+
       final estado = e['estado'] ?? 'Activo';
-      final coincideEstado = _filtroEstadoEmpleados == 'Todos' || estado == _filtroEstadoEmpleados;
+      final coincideEstado =
+          _filtroEstadoEmpleados == 'Todos' || estado == _filtroEstadoEmpleados;
 
       final empresa = e['empresa'] ?? 'N/A';
-      final coincideEmpresa = _filtroEmpresaEmpleados == 'Todas' || empresa == _filtroEmpresaEmpleados;
+      final coincideEmpresa =
+          _filtroEmpresaEmpleados == 'Todas' ||
+          empresa == _filtroEmpresaEmpleados;
 
       final vendedor = e['vendedor'] ?? 'Sin vendedor';
-      final coincideVendedor = _filtroVendedorEmpleados == 'Todos' || vendedor == _filtroVendedorEmpleados;
+      final coincideVendedor =
+          _filtroVendedorEmpleados == 'Todos' ||
+          vendedor == _filtroVendedorEmpleados;
 
-      return coincideTexto && coincideEstado && coincideEmpresa && coincideVendedor;
+      return coincideTexto &&
+          coincideEstado &&
+          coincideEmpresa &&
+          coincideVendedor;
     }).toList();
 
     return Padding(
@@ -597,7 +663,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Empleados', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Empleados',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               ElevatedButton.icon(
                 onPressed: _mostrarDialogoAltaEmpleado,
                 icon: const Icon(Icons.person_add),
@@ -605,7 +674,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0F766E),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
                 ),
               ),
             ],
@@ -619,44 +691,63 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 250,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Buscar por nombre o número...',
+                    labelText: 'Buscar por nombre o nÃºmero...',
                     prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                     filled: true,
                     fillColor: Colors.white,
                   ),
-                  onChanged: (value) => setState(() => _filtroEmpleados = value),
+                  onChanged: (value) =>
+                      setState(() => _filtroEmpleados = value),
                 ),
               ),
               DropdownButton<String>(
                 value: _filtroEstadoEmpleados,
                 items: const [
-                  DropdownMenuItem(value: 'Todos', child: Text('Todos (Estado)')),
+                  DropdownMenuItem(
+                    value: 'Todos',
+                    child: Text('Todos (Estado)'),
+                  ),
                   DropdownMenuItem(value: 'Activo', child: Text('Activo')),
                   DropdownMenuItem(value: 'Inactivo', child: Text('Inactivo')),
                 ],
                 onChanged: (value) {
-                  if (value != null) setState(() => _filtroEstadoEmpleados = value);
+                  if (value != null)
+                    setState(() => _filtroEstadoEmpleados = value);
                 },
               ),
               DropdownButton<String>(
                 value: _filtroEmpresaEmpleados,
                 items: [
-                  const DropdownMenuItem(value: 'Todas', child: Text('Todas (Empresa)')),
-                  ...empresas.map((e) => DropdownMenuItem(value: e, child: Text(e))),
+                  const DropdownMenuItem(
+                    value: 'Todas',
+                    child: Text('Todas (Empresa)'),
+                  ),
+                  ...empresas.map(
+                    (e) => DropdownMenuItem(value: e, child: Text(e)),
+                  ),
                 ],
                 onChanged: (value) {
-                  if (value != null) setState(() => _filtroEmpresaEmpleados = value);
+                  if (value != null)
+                    setState(() => _filtroEmpresaEmpleados = value);
                 },
               ),
               DropdownButton<String>(
                 value: _filtroVendedorEmpleados,
                 items: [
-                  const DropdownMenuItem(value: 'Todos', child: Text('Todos (Vendedor)')),
-                  ...vendedores.map((v) => DropdownMenuItem(value: v, child: Text(v))),
+                  const DropdownMenuItem(
+                    value: 'Todos',
+                    child: Text('Todos (Vendedor)'),
+                  ),
+                  ...vendedores.map(
+                    (v) => DropdownMenuItem(value: v, child: Text(v)),
+                  ),
                 ],
                 onChanged: (value) {
-                  if (value != null) setState(() => _filtroVendedorEmpleados = value);
+                  if (value != null)
+                    setState(() => _filtroVendedorEmpleados = value);
                 },
               ),
             ],
@@ -666,59 +757,91 @@ class _DashboardScreenState extends State<DashboardScreen> {
             child: _cargandoEmpleados
                 ? const Center(child: CircularProgressIndicator())
                 : empleadosFiltrados.isEmpty
-                    ? const Center(
-                        child: Text(
-                          'No hay empleados que coincidan con los filtros.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.black54, fontSize: 16),
+                ? const Center(
+                    child: Text(
+                      'No hay empleados que coincidan con los filtros.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.black54, fontSize: 16),
+                    ),
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
                         ),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
-                        ),
-                        child: ListView.separated(
-                          itemCount: empleadosFiltrados.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final empleado = empleadosFiltrados[index];
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: const Color(0xFF0F766E).withValues(alpha: 0.1),
-				child: Text(
-				  (empleado['nombreCompleto'] as String? ?? 'E').substring(0, 1).toUpperCase(),
-                                  style: const TextStyle(color: Color(0xFF0F766E), fontWeight: FontWeight.bold),
+                      ],
+                    ),
+                    child: ListView.separated(
+                      itemCount: empleadosFiltrados.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final empleado = empleadosFiltrados[index];
+                        return ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: const Color(
+                              0xFF0F766E,
+                            ).withValues(alpha: 0.1),
+                            child: Text(
+                              (empleado['nombreCompleto'] as String? ?? 'E')
+                                  .substring(0, 1)
+                                  .toUpperCase(),
+                              style: const TextStyle(
+                                color: Color(0xFF0F766E),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            empleado['nombreCompleto'] ?? 'Sin nombre',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'NÃ³mina: ${empleado['numeroEmpleado']} â€¢ MÃ©todo: ${empleado['metodoLecturaPreferido']}',
+                              ),
+                              Text(
+                                'Empresa: ${empleado['empresa'] ?? 'N/A'} â€¢ Vendedor: ${empleado['vendedor'] ?? 'Sin vendedor'}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
                                 ),
                               ),
-                              title: Text(empleado['nombreCompleto'] ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Nómina: ${empleado['numeroEmpleado']} • Método: ${empleado['metodoLecturaPreferido']}'),
-                                  Text('Empresa: ${empleado['empresa'] ?? 'N/A'} • Vendedor: ${empleado['vendedor'] ?? 'Sin vendedor'}', style: const TextStyle(fontSize: 12, color: Colors.black54)),
-                                ],
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isDesktop)
+                                _chipEstado(empleado['estado'] ?? 'Activo'),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Colors.blue,
+                                ),
+                                onPressed: () =>
+                                    _mostrarDialogoEditarEmpleado(empleado),
                               ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (isDesktop) _chipEstado(empleado['estado'] ?? 'Activo'),
-                                  const SizedBox(width: 8),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.blue),
-                                    onPressed: () => _mostrarDialogoEditarEmpleado(empleado),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_forever, color: Colors.red),
-                                    onPressed: () => _eliminarEmpleado(empleado['empleadoId']),
-                                  ),
-                                ],
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_forever,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () =>
+                                    _eliminarEmpleado(empleado['empleadoId']),
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -731,11 +854,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Reportes de Jornada (STPS)',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Reportes de Jornada (STPS)',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          const Text('Selecciona el periodo y descarga el reporte.',
-              style: TextStyle(color: Colors.black54)),
+          const Text(
+            'Selecciona el periodo y descarga el reporte.',
+            style: TextStyle(color: Colors.black54),
+          ),
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(20),
@@ -743,7 +870,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                ),
               ],
             ),
             child: Column(
@@ -767,7 +897,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2030),
                           );
-                          if (picked != null) setState(() => _fechaInicio = picked);
+                          if (picked != null)
+                            setState(() => _fechaInicio = picked);
                         },
                       ),
                     ),
@@ -788,7 +919,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             firstDate: DateTime(2020),
                             lastDate: DateTime(2030),
                           );
-                          if (picked != null) setState(() => _fechaFin = picked);
+                          if (picked != null)
+                            setState(() => _fechaFin = picked);
                         },
                       ),
                     ),
@@ -806,14 +938,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             labelText: 'Empresa',
                             border: OutlineInputBorder(),
                           ),
-items: [
-  const DropdownMenuItem<String>(value: null, child: Text('Todas')),
-  ..._empresas.map((e) => DropdownMenuItem<String>(
-        value: e['cuentaId'] as String,
-        child: Text(e['nombreComercial'] as String? ?? 'Sin nombre'),
-      )),
-],
-                          onChanged: (value) => setState(() => _filtroEmpresa = value),
+                          items: [
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('Todas'),
+                            ),
+                            ..._empresas.map(
+                              (e) => DropdownMenuItem<String>(
+                                value: e['cuentaId'] as String,
+                                child: Text(
+                                  e['nombreComercial'] as String? ??
+                                      'Sin nombre',
+                                ),
+                              ),
+                            ),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => _filtroEmpresa = value),
                         ),
                       ),
                     if (widget.usuario['rol'] == 'SuperAdmin')
@@ -827,13 +968,21 @@ items: [
                             border: OutlineInputBorder(),
                           ),
                           items: [
-const DropdownMenuItem<String>(value: null, child: Text('Todos')),
-                            ..._vendedores.map((v) => DropdownMenuItem<String>(
-                                  value: v['usuarioId'] as String,
-                                  child: Text(v['nombre'] as String? ?? 'Sin nombre'),
-                                )),
+                            const DropdownMenuItem<String>(
+                              value: null,
+                              child: Text('Todos'),
+                            ),
+                            ..._vendedores.map(
+                              (v) => DropdownMenuItem<String>(
+                                value: v['usuarioId'] as String,
+                                child: Text(
+                                  v['nombre'] as String? ?? 'Sin nombre',
+                                ),
+                              ),
+                            ),
                           ],
-                          onChanged: (value) => setState(() => _filtroVendedor = value),
+                          onChanged: (value) =>
+                              setState(() => _filtroVendedor = value),
                         ),
                       ),
                     const SizedBox(width: 16),
@@ -841,35 +990,60 @@ const DropdownMenuItem<String>(value: null, child: Text('Todos')),
                       child: DropdownButtonFormField<String>(
                         value: _filtroMetodo,
                         decoration: const InputDecoration(
-                          labelText: 'Método',
+                          labelText: 'MÃ©todo',
                           border: OutlineInputBorder(),
                         ),
                         items: [
-const DropdownMenuItem<String>(value: null, child: Text('Todos')),
-                          ..._metodos.map((m) => DropdownMenuItem<String>(
-                                value: m,
-                                child: Text(m),
-                              )),
+                          const DropdownMenuItem<String>(
+                            value: null,
+                            child: Text('Todos'),
+                          ),
+                          ..._metodos.map(
+                            (m) => DropdownMenuItem<String>(
+                              value: m,
+                              child: Text(m),
+                            ),
+                          ),
                         ],
-                        onChanged: (value) => setState(() => _filtroMetodo = value),
+                        onChanged: (value) =>
+                            setState(() => _filtroMetodo = value),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
-                // Botón Generar
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: _cargandoReporte ? null : _generarReporte,
-                    icon: const Icon(Icons.search),
-                    label: Text(_cargandoReporte ? 'Generando...' : 'Generar Reporte'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F766E),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                // BotÃ³n Generar
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: _cargandoReporte ? null : _generarReporte,
+                        icon: const Icon(Icons.search),
+                        label: Text(
+                          _cargandoReporte ? 'Generando...' : 'Generar Reporte',
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF0F766E),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                        ),
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      onPressed: _cargandoReporte ? null : _nuevaChecada,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Nueva Checada'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -878,74 +1052,103 @@ const DropdownMenuItem<String>(value: null, child: Text('Todos')),
           Expanded(
             child: _reporteActual == null
                 ? const Center(
-                    child: Text('Selecciona un rango y genera el reporte.',
-                        style: TextStyle(color: Colors.black54)))
+                    child: Text(
+                      'Selecciona un rango y genera el reporte.',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  )
                 : _reporteActual!['registros'].isEmpty
-                    ? const Center(child: Text('No hay registros.'))
-                    : Column(
+                ? const Center(child: Text('No hay registros.'))
+                : Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Text(
+                            'Total: ${_reporteActual!['totalRegistros']} registros',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                  'Total: ${_reporteActual!['totalRegistros']} registros',
-                                  style: const TextStyle(fontWeight: FontWeight.bold)),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    onPressed: _exportarCSV,
-                                    icon: const Icon(Icons.download),
-                                    tooltip: 'Exportar a CSV',
-                                  ),
-                                  IconButton(
-                                    onPressed: _exportarExcel,
-                                    icon: const Icon(Icons.table_chart),
-                                    tooltip: 'Exportar a Excel',
-                                  ),
-                                ],
+                              IconButton(
+                                onPressed: _exportarCSV,
+                                icon: const Icon(Icons.download),
+                                tooltip: 'Exportar a CSV',
+                              ),
+                              IconButton(
+                                onPressed: _exportarExcel,
+                                icon: const Icon(Icons.table_chart),
+                                tooltip: 'Exportar a Excel',
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12)),
-                              child: ListView.separated(
-                                itemCount: _reporteActual!['registros'].length,
-                                separatorBuilder: (_, _) =>
-                                    const Divider(height: 1),
-itemBuilder: (context, index) {
-  final r = _reporteActual!['registros'][index];
-  final tipo = (r['tipoChecada'] as String? ?? 'N/A');
-  final empleado = (r['empleado'] as String? ?? 'Sin nombre');
-  final numero = (r['numeroEmpleado'] as String? ?? 'N/A');
-  final timestamp = r['timestampServidor'] as String?;
-  final fechaFormateada = timestamp != null
-      ? _formatearFecha(DateTime.parse(timestamp))
-      : 'Sin fecha';
-
-  return ListTile(
-    leading: Icon(
-      tipo == 'Entrada' ? Icons.login : Icons.logout,
-      color: tipo == 'Entrada' ? Colors.green : Colors.orange,
-    ),
-    title: Text('$empleado ($numero)'),
-    subtitle: Text('$tipo • $fechaFormateada'),
-    trailing: IconButton(
-      icon: const Icon(Icons.edit, color: Colors.blue),
-      tooltip: 'Editar checada',
-      onPressed: () => _editarChecada(r),
-    ),
-  );
-},
-                              ),
-                            ),
-                          ),
                         ],
                       ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListView.separated(
+                            itemCount: _reporteActual!['registros'].length,
+                            separatorBuilder: (_, _) =>
+                                const Divider(height: 1),
+                            itemBuilder: (context, index) {
+                              final r = _reporteActual!['registros'][index];
+                              final tipo =
+                                  (r['tipoChecada'] as String? ?? 'N/A');
+                              final empleado =
+                                  (r['empleado'] as String? ?? 'Sin nombre');
+                              final numero =
+                                  (r['numeroEmpleado'] as String? ?? 'N/A');
+                              final timestamp =
+                                  r['timestampServidor'] as String?;
+                              final fechaFormateada = timestamp != null
+                                  ? _formatearFecha(DateTime.parse(timestamp))
+                                  : 'Sin fecha';
+
+                              return ListTile(
+                                leading: Icon(
+                                  tipo == 'Entrada'
+                                      ? Icons.login
+                                      : Icons.logout,
+                                  color: tipo == 'Entrada'
+                                      ? Colors.green
+                                      : Colors.orange,
+                                ),
+                                title: Text('$empleado ($numero)'),
+                                subtitle: Text('$tipo â€¢ $fechaFormateada'),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      tooltip: 'Editar checada',
+                                      onPressed: () => _editarChecada(r),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      tooltip: 'Eliminar checada',
+                                      onPressed: () => _eliminarChecada(r),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ],
       ),
@@ -962,26 +1165,45 @@ itemBuilder: (context, index) {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Mi Suscripción', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Mi SuscripciÃ³n',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 24),
           if (_cargandoSuscripcion)
             const Center(child: CircularProgressIndicator())
-          else if (_suscripcionActual == null || _suscripcionActual!['plan'] == null)
+          else if (_suscripcionActual == null ||
+              _suscripcionActual!['plan'] == null)
             Container(
               padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: const Column(
                 children: [
                   Icon(Icons.warning_amber, size: 64, color: Colors.orange),
                   SizedBox(height: 16),
-                  Text('No tienes una suscripción activa.', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(
+                    'No tienes una suscripciÃ³n activa.',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                 ],
               ),
             )
           else
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                  ),
+                ],
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -989,13 +1211,28 @@ itemBuilder: (context, index) {
                     children: [
                       const Icon(Icons.verified, color: Colors.green, size: 32),
                       const SizedBox(width: 12),
-                      Text(_suscripcionActual!['plan']['nombre'] ?? 'Sin plan', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                      Text(
+                        _suscripcionActual!['plan']['nombre'] ?? 'Sin plan',
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ],
                   ),
                   const Divider(height: 32),
-                  _infoRow('Precio base', '\$${_suscripcionActual!['plan']['precioBase']} MXN/mes'),
-                  _infoRow('Límite de empleados', '${_suscripcionActual!['plan']['limiteEmpleados']} empleados'),
-                  _infoRow('Límite de kioskos', '${_suscripcionActual!['plan']['limiteKioskos']} kioskos'),
+                  _infoRow(
+                    'Precio base',
+                    '\$${_suscripcionActual!['plan']['precioBase']} MXN/mes',
+                  ),
+                  _infoRow(
+                    'LÃ­mite de empleados',
+                    '${_suscripcionActual!['plan']['limiteEmpleados']} empleados',
+                  ),
+                  _infoRow(
+                    'LÃ­mite de kioskos',
+                    '${_suscripcionActual!['plan']['limiteKioskos']} kioskos',
+                  ),
                   _infoRow('Estado', _suscripcionActual!['estado'] ?? 'Activa'),
                 ],
               ),
@@ -1027,12 +1264,18 @@ itemBuilder: (context, index) {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Facturas', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Facturas',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               ElevatedButton.icon(
                 onPressed: _cargandoFacturas ? null : _generarFacturaDelMes,
                 icon: const Icon(Icons.receipt),
                 label: const Text('Generar'),
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E), foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F766E),
+                  foregroundColor: Colors.white,
+                ),
               ),
             ],
           ),
@@ -1041,45 +1284,81 @@ itemBuilder: (context, index) {
             child: _cargandoFacturas
                 ? const Center(child: CircularProgressIndicator())
                 : _facturas.isEmpty
-                    ? const Center(child: Text('No hay facturas generadas.', style: TextStyle(color: Colors.black54)))
-                    : Container(
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)]),
-                        child: ListView.separated(
-                          itemCount: _facturas.length,
-                          separatorBuilder: (_, _) => const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            final factura = _facturas[index];
-                            final periodo = DateTime.parse(factura['periodoInicio']);
-                            final mesAnio = '${periodo.month.toString().padLeft(2, '0')}/${periodo.year}';
-                            return ListTile(
-                              leading: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: const Color(0xFF0F766E).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-                                child: const Icon(Icons.receipt, color: Color(0xFF0F766E)),
-                              ),
-                              title: Text('Factura $mesAnio', style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text('Total: \$${factura['total']}', style: const TextStyle(fontSize: 12)),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _chipEstado(factura['estado'] ?? 'Emitida'),
-                                  PopupMenuButton<String>(
-                                    onSelected: (value) async {
-                                      if (value == 'pagar') {
-                                        await _marcarFacturaPagada(factura['facturaId']);
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      if (factura['estado'] == 'Emitida')
-                                        const PopupMenuItem(value: 'pagar', child: Text('Marcar Pagada')),
-                                    ],
-                                  ),
+                ? const Center(
+                    child: Text(
+                      'No hay facturas generadas.',
+                      style: TextStyle(color: Colors.black54),
+                    ),
+                  )
+                : Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                        ),
+                      ],
+                    ),
+                    child: ListView.separated(
+                      itemCount: _facturas.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        final factura = _facturas[index];
+                        final periodo = DateTime.parse(
+                          factura['periodoInicio'],
+                        );
+                        final mesAnio =
+                            '${periodo.month.toString().padLeft(2, '0')}/${periodo.year}';
+                        return ListTile(
+                          leading: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF0F766E,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.receipt,
+                              color: Color(0xFF0F766E),
+                            ),
+                          ),
+                          title: Text(
+                            'Factura $mesAnio',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            'Total: \$${factura['total']}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _chipEstado(factura['estado'] ?? 'Emitida'),
+                              PopupMenuButton<String>(
+                                onSelected: (value) async {
+                                  if (value == 'pagar') {
+                                    await _marcarFacturaPagada(
+                                      factura['facturaId'],
+                                    );
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  if (factura['estado'] == 'Emitida')
+                                    const PopupMenuItem(
+                                      value: 'pagar',
+                                      child: Text('Marcar Pagada'),
+                                    ),
                                 ],
                               ),
-                            );
-                          },
-                        ),
-                      ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -1092,21 +1371,36 @@ itemBuilder: (context, index) {
       case 'Activa':
       case 'Activo':
       case 'Pagada':
-        color = Colors.green; break;
+        color = Colors.green;
+        break;
       case 'Emitida':
-        color = Colors.blue; break;
+        color = Colors.blue;
+        break;
       case 'Pendiente':
-        color = Colors.orange; break;
+        color = Colors.orange;
+        break;
       case 'Vencida':
       case 'Suspendido':
-        color = Colors.red; break;
+        color = Colors.red;
+        break;
       default:
         color = Colors.grey;
     }
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12), border: Border.all(color: color)),
-      child: Text(estado, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color),
+      ),
+      child: Text(
+        estado,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
     );
   }
 
@@ -1116,7 +1410,10 @@ itemBuilder: (context, index) {
   }
 
   Future<void> _generarReporte() async {
-    setState(() { _cargandoReporte = true; _reporteActual = null; });
+    setState(() {
+      _cargandoReporte = true;
+      _reporteActual = null;
+    });
     try {
       final reporte = await ApiService.obtenerReporteJornada(
         fechaInicio: _fechaInicio,
@@ -1140,7 +1437,7 @@ itemBuilder: (context, index) {
   Future<void> _generarFacturaDelMes() async {
     setState(() => _cargandoFacturas = true);
     try {
-      final factura = await ApiService.generarFactura();  // ← Bien
+      final factura = await ApiService.generarFactura(); // â† Bien
       if (!mounted) return;
       setState(() {
         _facturas.insert(0, factura);
@@ -1166,7 +1463,9 @@ itemBuilder: (context, index) {
     final registros = _reporteActual!['registros'] as List;
     final buffer = StringBuffer();
 
-    buffer.writeln('Empleado,NumeroEmpleado,TipoChecada,Timestamp,Metodo,Latitud,Longitud,Hash');
+    buffer.writeln(
+      'Empleado,NumeroEmpleado,TipoChecada,Timestamp,Metodo,Latitud,Longitud,Hash',
+    );
 
     for (final r in registros) {
       final empleado = (r['empleado'] as String? ?? '').replaceAll(',', ' ');
@@ -1178,18 +1477,21 @@ itemBuilder: (context, index) {
       final hash = (r['hashRegistro'] as String? ?? '');
       final numero = (r['numeroEmpleado'] as String? ?? '');
 
-      buffer.writeln('$empleado,$numero,$tipo,$timestamp,$metodo,$latitud,$longitud,$hash');
+      buffer.writeln(
+        '$empleado,$numero,$tipo,$timestamp,$metodo,$latitud,$longitud,$hash',
+      );
     }
 
     final ahora = DateTime.now();
-    final nombreArchivo = 'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}.csv';
-    
+    final nombreArchivo =
+        'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}.csv';
+
     final bytes = Uint8List.fromList(utf8.encode(buffer.toString()));
-    
+
     await FileSaver.instance.saveFile(
       name: nombreArchivo,
       bytes: bytes,
-      fileExtension: 'csv',    // ← BIEN
+      fileExtension: 'csv', // â† BIEN
       mimeType: MimeType.csv,
     );
 
@@ -1208,10 +1510,17 @@ itemBuilder: (context, index) {
       await ApiService.marcarFacturaPagada(facturaId);
       await _cargarFacturas();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Factura marcada como pagada'), backgroundColor: Colors.green));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Factura marcada como pagada'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+      );
     }
   }
 
@@ -1236,36 +1545,89 @@ itemBuilder: (context, index) {
                       ? Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('Registra un kiosko manualmente.', style: TextStyle(color: Colors.black54)),
+                            const Text(
+                              'Registra un kiosko manualmente.',
+                              style: TextStyle(color: Colors.black54),
+                            ),
                             const SizedBox(height: 16),
-                            TextField(controller: nombreController, decoration: const InputDecoration(labelText: 'Nombre del kiosko', border: OutlineInputBorder())),
+                            TextField(
+                              controller: nombreController,
+                              decoration: const InputDecoration(
+                                labelText: 'Nombre del kiosko',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
                             const SizedBox(height: 16),
-                            TextField(controller: deviceIdController, decoration: const InputDecoration(labelText: 'Device ID', border: OutlineInputBorder())),
+                            TextField(
+                              controller: deviceIdController,
+                              decoration: const InputDecoration(
+                                labelText: 'Device ID',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
                             const SizedBox(height: 16),
                             DropdownButtonFormField<String>(
                               initialValue: tipoSeleccionado,
-                              decoration: const InputDecoration(labelText: 'Tipo', border: OutlineInputBorder()),
+                              decoration: const InputDecoration(
+                                labelText: 'Tipo',
+                                border: OutlineInputBorder(),
+                              ),
                               items: const [
-                                DropdownMenuItem(value: 'KioskoFijo', child: Text('Kiosko Fijo')),
-                                DropdownMenuItem(value: 'Personal', child: Text('Personal')),
+                                DropdownMenuItem(
+                                  value: 'KioskoFijo',
+                                  child: Text('Kiosko Fijo'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'Personal',
+                                  child: Text('Personal'),
+                                ),
                               ],
-                              onChanged: (value) { if (value != null) setStateDialog(() => tipoSeleccionado = value); },
+                              onChanged: (value) {
+                                if (value != null)
+                                  setStateDialog(
+                                    () => tipoSeleccionado = value,
+                                  );
+                              },
                             ),
                           ],
                         )
                       : Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.check_circle, color: Colors.green, size: 64),
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 64,
+                            ),
                             const SizedBox(height: 16),
-                            const Text('¡Kiosko registrado!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            const Text(
+                              'Â¡Kiosko registrado!',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             const SizedBox(height: 8),
-                            const Text('Guarda este token:', textAlign: TextAlign.center, style: TextStyle(color: Colors.black54)),
+                            const Text(
+                              'Guarda este token:',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.black54),
+                            ),
                             const SizedBox(height: 16),
                             Container(
                               padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey.shade300)),
-                              child: SelectableText(tokenGenerado!, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: SelectableText(
+                                tokenGenerado!,
+                                style: const TextStyle(
+                                  fontFamily: 'monospace',
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -1273,26 +1635,59 @@ itemBuilder: (context, index) {
               ),
               actions: [
                 if (tokenGenerado == null) ...[
-                  TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancelar'),
+                  ),
                   ElevatedButton(
-                    onPressed: guardando ? null : () async {
-                      if (nombreController.text.trim().isEmpty || deviceIdController.text.trim().isEmpty) return;
-                      setStateDialog(() => guardando = true);
-                      try {
-                        final response = await ApiService.altaDirectaKiosko(nombre: nombreController.text.trim(), tipo: tipoSeleccionado, deviceId: 						deviceIdController.text.trim());
-			setStateDialog(() { 
-			  tokenGenerado = response['tokenPuntoLectura'] as String? ?? 'Sin token'; 
-			  guardando = false; 
-			});
-                        await _cargarKioskos();
-                      } catch (e) {
-                        setStateDialog(() => guardando = false);
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700),
-                    child: guardando ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Registrar', style: TextStyle(color: Colors.white)),
+                    onPressed: guardando
+                        ? null
+                        : () async {
+                            if (nombreController.text.trim().isEmpty ||
+                                deviceIdController.text.trim().isEmpty)
+                              return;
+                            setStateDialog(() => guardando = true);
+                            try {
+                              final response =
+                                  await ApiService.altaDirectaKiosko(
+                                    nombre: nombreController.text.trim(),
+                                    tipo: tipoSeleccionado,
+                                    deviceId: deviceIdController.text.trim(),
+                                  );
+                              setStateDialog(() {
+                                tokenGenerado =
+                                    response['tokenPuntoLectura'] as String? ??
+                                    'Sin token';
+                                guardando = false;
+                              });
+                              await _cargarKioskos();
+                            } catch (e) {
+                              setStateDialog(() => guardando = false);
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Error: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade700,
+                    ),
+                    child: guardando
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            'Registrar',
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
                 ] else ...[
                   ElevatedButton(
@@ -1300,8 +1695,13 @@ itemBuilder: (context, index) {
                       Navigator.pop(context);
                       _cargarKioskos();
                     },
-                    style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
-                    child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0F766E),
+                    ),
+                    child: const Text(
+                      'Cerrar',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ],
               ],
@@ -1328,39 +1728,78 @@ itemBuilder: (context, index) {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextField(controller: nombreController, decoration: const InputDecoration(labelText: 'Nombre del kiosko', border: OutlineInputBorder())),
+                    TextField(
+                      controller: nombreController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre del kiosko',
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
                       initialValue: tipoSeleccionado,
-                      decoration: const InputDecoration(labelText: 'Tipo', border: OutlineInputBorder()),
+                      decoration: const InputDecoration(
+                        labelText: 'Tipo',
+                        border: OutlineInputBorder(),
+                      ),
                       items: const [
-                        DropdownMenuItem(value: 'KioskoFijo', child: Text('Kiosko Fijo')),
-                        DropdownMenuItem(value: 'Personal', child: Text('Personal')),
+                        DropdownMenuItem(
+                          value: 'KioskoFijo',
+                          child: Text('Kiosko Fijo'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Personal',
+                          child: Text('Personal'),
+                        ),
                       ],
-                      onChanged: (value) { if (value != null) setStateDialog(() => tipoSeleccionado = value); },
+                      onChanged: (value) {
+                        if (value != null)
+                          setStateDialog(() => tipoSeleccionado = value);
+                      },
                     ),
                   ],
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
                 ElevatedButton(
                   onPressed: () async {
                     if (nombreController.text.trim().isEmpty) return;
                     try {
-                      await ApiService.editarKiosko(id: kiosko['puntoLecturaId'], nombre: nombreController.text.trim(), tipo: tipoSeleccionado);
+                      await ApiService.editarKiosko(
+                        id: kiosko['puntoLecturaId'],
+                        nombre: nombreController.text.trim(),
+                        tipo: tipoSeleccionado,
+                      );
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       await _cargarKioskos();
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko actualizado correctamente')));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Kiosko actualizado correctamente'),
+                        ),
+                      );
                     } catch (e) {
                       if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: $e'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
                     }
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
-                  child: const Text('Guardar', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                  ),
+                  child: const Text(
+                    'Guardar',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             );
@@ -1374,11 +1813,18 @@ itemBuilder: (context, index) {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Revocar kiosko?'),
-        content: const Text('El kiosko dejará de checar.'),
+        title: const Text('Â¿Revocar kiosko?'),
+        content: const Text('El kiosko dejarÃ¡ de checar.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.orange), child: const Text('Revocar', style: TextStyle(color: Colors.white))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text('Revocar', style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );
@@ -1387,10 +1833,14 @@ itemBuilder: (context, index) {
         await ApiService.revocarKiosko(id);
         await _cargarKioskos();
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko revocado')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Kiosko revocado')));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -1399,11 +1849,21 @@ itemBuilder: (context, index) {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Eliminar kiosko?'),
-        content: const Text('Esta acción es permanente.'),
+        title: const Text('Â¿Eliminar kiosko?'),
+        content: const Text('Esta acciÃ³n es permanente.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text('Eliminar', style: TextStyle(color: Colors.white))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         ],
       ),
     );
@@ -1412,37 +1872,62 @@ itemBuilder: (context, index) {
         await ApiService.eliminarKiosko(id);
         await _cargarKioskos();
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kiosko eliminado')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Kiosko eliminado')));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }
 
   Future<void> _regenerarCodigoYMostrar(Map<String, dynamic> kiosko) async {
     try {
-      final response = await ApiService.regenerarCodigoKiosko(kiosko['puntoLecturaId']);
+      final response = await ApiService.regenerarCodigoKiosko(
+        kiosko['puntoLecturaId'],
+      );
       if (!mounted) return;
       await _cargarKioskos();
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Código Generado'),
+          title: const Text('CÃ³digo Generado'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.check_circle, color: Colors.green, size: 64),
               const SizedBox(height: 16),
-              Text('Kiosko: ${kiosko['nombre']}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                'Kiosko: ${kiosko['nombre']}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(color: const Color(0xFF0F766E).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                child: SelectableText(response['codigo'], style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF0F766E))),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F766E).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: SelectableText(
+                  response['codigo'],
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F766E),
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
-              const Text('Expira en 72 horas', style: TextStyle(color: Colors.black54)),
+              const Text(
+                'Expira en 72 horas',
+                style: TextStyle(color: Colors.black54),
+              ),
             ],
           ),
           actions: [
@@ -1451,14 +1936,25 @@ itemBuilder: (context, index) {
                 Navigator.pop(context);
                 _cargarKioskos();
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
-              child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F766E),
+              ),
+              child: const Text(
+                'Cerrar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),
       );
     } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al regenerar: $e'), backgroundColor: Colors.red));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al regenerar: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
     }
   }
 
@@ -1483,25 +1979,68 @@ itemBuilder: (context, index) {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(controller: nombreController, decoration: const InputDecoration(labelText: 'Nombre completo', border: OutlineInputBorder())),
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre completo',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      TextField(controller: numeroController, decoration: const InputDecoration(labelText: 'Número de empleado', border: OutlineInputBorder())),
+                      TextField(
+                        controller: numeroController,
+                        decoration: const InputDecoration(
+                          labelText: 'NÃºmero de empleado',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      TextField(controller: pinController, decoration: const InputDecoration(labelText: 'PIN de respaldo (4 dígitos)', border: OutlineInputBorder())),
+                      TextField(
+                        controller: pinController,
+                        decoration: const InputDecoration(
+                          labelText: 'PIN de respaldo (4 dÃ­gitos)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         initialValue: metodoSeleccionado,
-                        decoration: const InputDecoration(labelText: 'Método de lectura', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'MÃ©todo de lectura',
+                          border: OutlineInputBorder(),
+                        ),
                         items: const [
-				DropdownMenuItem(value: 'QR', child: Text('QR solo')),
-				DropdownMenuItem(value: 'QR+Rostro', child: Text('QR + Rostro')),
-				DropdownMenuItem(value: 'ID+PIN', child: Text('ID + PIN')),
-				DropdownMenuItem(value: 'ID+Rostro', child: Text('ID + Rostro')),
-				DropdownMenuItem(value: 'Rostro', child: Text('Solo Rostro')),                        ],
-                        onChanged: (value) { if (value != null) setStateDialog(() => metodoSeleccionado = value); },
+                          DropdownMenuItem(value: 'QR', child: Text('QR solo')),
+                          DropdownMenuItem(
+                            value: 'QR+Rostro',
+                            child: Text('QR + Rostro'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'ID+PIN',
+                            child: Text('ID + PIN'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'ID+Rostro',
+                            child: Text('ID + Rostro'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Rostro',
+                            child: Text('Solo Rostro'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null)
+                            setStateDialog(() => metodoSeleccionado = value);
+                        },
                       ),
                       const SizedBox(height: 16),
-                      const Text('Rostro del Empleado', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const Text(
+                        'Rostro del Empleado',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -1510,27 +2049,50 @@ itemBuilder: (context, index) {
                               onPressed: () async {
                                 try {
                                   final picker = ImagePicker();
-                                  final XFile? image = await picker.pickImage(source: ImageSource.camera, maxWidth: 300, imageQuality: 50);
+                                  final XFile? image = await picker.pickImage(
+                                    source: ImageSource.camera,
+                                    maxWidth: 300,
+                                    imageQuality: 50,
+                                  );
                                   if (image != null) {
                                     final bytes = await image.readAsBytes();
-                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
+                                    setStateDialog(
+                                      () => fotoBase64 = base64Encode(bytes),
+                                    );
                                   }
                                 } catch (e) {
                                   try {
                                     final picker = ImagePicker();
-                                    final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300, imageQuality: 50);
+                                    final XFile? image = await picker.pickImage(
+                                      source: ImageSource.gallery,
+                                      maxWidth: 300,
+                                      imageQuality: 50,
+                                    );
                                     if (image != null) {
                                       final bytes = await image.readAsBytes();
-                                      setStateDialog(() => fotoBase64 = base64Encode(bytes));
+                                      setStateDialog(
+                                        () => fotoBase64 = base64Encode(bytes),
+                                      );
                                     }
                                   } catch (e2) {
-                                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e2'), backgroundColor: Colors.red));
+                                    if (context.mounted)
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Error: $e2'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
                                   }
                                 }
                               },
                               icon: const Icon(Icons.camera_alt),
                               label: const Text('Tomar'),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, foregroundColor: Colors.white),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue.shade700,
+                                foregroundColor: Colors.white,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -1539,18 +2101,33 @@ itemBuilder: (context, index) {
                               onPressed: () async {
                                 try {
                                   final picker = ImagePicker();
-                                  final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 300, imageQuality: 50);
+                                  final XFile? image = await picker.pickImage(
+                                    source: ImageSource.gallery,
+                                    maxWidth: 300,
+                                    imageQuality: 50,
+                                  );
                                   if (image != null) {
                                     final bytes = await image.readAsBytes();
-                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
+                                    setStateDialog(
+                                      () => fotoBase64 = base64Encode(bytes),
+                                    );
                                   }
                                 } catch (e) {
-                                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+                                  if (context.mounted)
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Error: $e'),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
                                 }
                               },
                               icon: const Icon(Icons.upload_file),
                               label: const Text('Subir'),
-                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade700, foregroundColor: Colors.white),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.grey.shade700,
+                                foregroundColor: Colors.white,
+                              ),
                             ),
                           ),
                         ],
@@ -1560,15 +2137,30 @@ itemBuilder: (context, index) {
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 20),
+                            Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
-                            Text('Rostro cargado', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                            Text(
+                              'Rostro cargado',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 8),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(base64Decode(fotoBase64!), height: 80, width: 80, fit: BoxFit.cover),
+                          child: Image.memory(
+                            base64Decode(fotoBase64!),
+                            height: 80,
+                            width: 80,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ],
                     ],
@@ -1576,32 +2168,60 @@ itemBuilder: (context, index) {
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
                 ElevatedButton(
-                  onPressed: guardando ? null : () async {
-                    if (nombreController.text.trim().isEmpty || numeroController.text.trim().isEmpty) return;
-                    setStateDialog(() => guardando = true);
-                    try {
-                      final response = await ApiService.altaEmpleado(
-                        numeroEmpleado: numeroController.text.trim(),
-                        nombreCompleto: nombreController.text.trim(),
-                        pinRespaldo: pinController.text.trim(),
-                        metodoLectura: metodoSeleccionado,
-                        fotoBase64: fotoBase64,
-                      );
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      await _cargarEmpleados();
-                      if (!mounted) return;
-                      _mostrarAcuseLegal(response['acuseContenido'] ?? '');
-                    } catch (e) {
-                      if (!mounted) return;
-                      setStateDialog(() => guardando = false);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
-                  child: guardando ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Dar de Alta', style: TextStyle(color: Colors.white)),
+                  onPressed: guardando
+                      ? null
+                      : () async {
+                          if (nombreController.text.trim().isEmpty ||
+                              numeroController.text.trim().isEmpty)
+                            return;
+                          setStateDialog(() => guardando = true);
+                          try {
+                            final response = await ApiService.altaEmpleado(
+                              numeroEmpleado: numeroController.text.trim(),
+                              nombreCompleto: nombreController.text.trim(),
+                              pinRespaldo: pinController.text.trim(),
+                              metodoLectura: metodoSeleccionado,
+                              fotoBase64: fotoBase64,
+                            );
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+                            await _cargarEmpleados();
+                            if (!mounted) return;
+                            _mostrarAcuseLegal(
+                              response['acuseContenido'] ?? '',
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            setStateDialog(() => guardando = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                  ),
+                  child: guardando
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Dar de Alta',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ],
             );
@@ -1611,8 +2231,12 @@ itemBuilder: (context, index) {
     );
   }
 
-  Future<void> _mostrarDialogoEditarEmpleado(Map<String, dynamic> empleado) async {
-    final nombreController = TextEditingController(text: empleado['nombreCompleto']);
+  Future<void> _mostrarDialogoEditarEmpleado(
+    Map<String, dynamic> empleado,
+  ) async {
+    final nombreController = TextEditingController(
+      text: empleado['nombreCompleto'],
+    );
     final pinController = TextEditingController();
     String metodoSeleccionado = empleado['metodoLecturaPreferido'] ?? 'QR';
     String estadoSeleccionado = empleado['estado'] ?? 'Activo';
@@ -1631,63 +2255,130 @@ itemBuilder: (context, index) {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(controller: nombreController, decoration: const InputDecoration(labelText: 'Nombre completo', border: OutlineInputBorder())),
+                      TextField(
+                        controller: nombreController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nombre completo',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       const SizedBox(height: 16),
-                      TextField(controller: pinController, decoration: const InputDecoration(labelText: 'Nuevo PIN (opcional)', border: OutlineInputBorder())),
+                      TextField(
+                        controller: pinController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nuevo PIN (opcional)',
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         initialValue: metodoSeleccionado,
-                        decoration: const InputDecoration(labelText: 'Método de lectura', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'MÃ©todo de lectura',
+                          border: OutlineInputBorder(),
+                        ),
                         items: const [
                           DropdownMenuItem(value: 'QR', child: Text('QR')),
                           DropdownMenuItem(value: 'PIN', child: Text('PIN')),
-                          DropdownMenuItem(value: 'QR+Rostro', child: Text('QR + Rostro')),
-                          DropdownMenuItem(value: 'PIN+Rostro', child: Text('PIN + Rostro')),
-                          DropdownMenuItem(value: 'Rostro', child: Text('Solo Rostro (próximamente)')),
+                          DropdownMenuItem(
+                            value: 'QR+Rostro',
+                            child: Text('QR + Rostro'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'PIN+Rostro',
+                            child: Text('PIN + Rostro'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Rostro',
+                            child: Text('Solo Rostro (prÃ³ximamente)'),
+                          ),
                         ],
-                        onChanged: (value) { if (value != null) setStateDialog(() => metodoSeleccionado = value); },
+                        onChanged: (value) {
+                          if (value != null)
+                            setStateDialog(() => metodoSeleccionado = value);
+                        },
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         initialValue: estadoSeleccionado,
-                        decoration: const InputDecoration(labelText: 'Estado', border: OutlineInputBorder()),
+                        decoration: const InputDecoration(
+                          labelText: 'Estado',
+                          border: OutlineInputBorder(),
+                        ),
                         items: const [
-                          DropdownMenuItem(value: 'Activo', child: Text('Activo')),
-                          DropdownMenuItem(value: 'Inactivo', child: Text('Inactivo')),
+                          DropdownMenuItem(
+                            value: 'Activo',
+                            child: Text('Activo'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Inactivo',
+                            child: Text('Inactivo'),
+                          ),
                         ],
-                        onChanged: (value) { if (value != null) setStateDialog(() => estadoSeleccionado = value); },
+                        onChanged: (value) {
+                          if (value != null)
+                            setStateDialog(() => estadoSeleccionado = value);
+                        },
                       ),
                     ],
                   ),
                 ),
               ),
               actions: [
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
                 ElevatedButton(
-                  onPressed: guardando ? null : () async {
-                    if (nombreController.text.trim().isEmpty) return;
-                    setStateDialog(() => guardando = true);
-                    try {
-                      await ApiService.editarEmpleado(
-                        id: empleado['empleadoId'],
-                        nombreCompleto: nombreController.text.trim(),
-                        pinRespaldo: pinController.text.trim(),
-                        metodoLectura: metodoSeleccionado,
-                        estado: estadoSeleccionado,
-                      );
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                      await _cargarEmpleados();
-                      if (!mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado actualizado')));
-                    } catch (e) {
-                      if (!mounted) return;
-                      setStateDialog(() => guardando = false);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
-                  child: guardando ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text('Guardar', style: TextStyle(color: Colors.white)),
+                  onPressed: guardando
+                      ? null
+                      : () async {
+                          if (nombreController.text.trim().isEmpty) return;
+                          setStateDialog(() => guardando = true);
+                          try {
+                            await ApiService.editarEmpleado(
+                              id: empleado['empleadoId'],
+                              nombreCompleto: nombreController.text.trim(),
+                              pinRespaldo: pinController.text.trim(),
+                              metodoLectura: metodoSeleccionado,
+                              estado: estadoSeleccionado,
+                            );
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+                            await _cargarEmpleados();
+                            if (!mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Empleado actualizado'),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
+                            setStateDialog(() => guardando = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF0F766E),
+                  ),
+                  child: guardando
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Guardar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                 ),
               ],
             );
@@ -1701,11 +2392,21 @@ itemBuilder: (context, index) {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('¿Eliminar empleado?'),
-        content: const Text('Esta acción es permanente.'),
+        title: const Text('Â¿Eliminar empleado?'),
+        content: const Text('Esta acciÃ³n es permanente.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
-          ElevatedButton(onPressed: () => Navigator.pop(context, true), style: ElevatedButton.styleFrom(backgroundColor: Colors.red), child: const Text('Eliminar', style: TextStyle(color: Colors.white))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text(
+              'Eliminar',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
         ],
       ),
     );
@@ -1714,10 +2415,14 @@ itemBuilder: (context, index) {
         await ApiService.eliminarEmpleado(id);
         await _cargarEmpleados();
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Empleado eliminado')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Empleado eliminado')));
       } catch (e) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -1730,13 +2435,18 @@ itemBuilder: (context, index) {
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
-            child: SelectableText(acuse, style: const TextStyle(fontFamily: 'monospace', fontSize: 12)),
+            child: SelectableText(
+              acuse,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+            ),
           ),
         ),
         actions: [
           ElevatedButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0F766E),
+            ),
             child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -1753,10 +2463,10 @@ itemBuilder: (context, index) {
     buffer.writeln('<table border="1">');
     buffer.writeln('<tr>');
     buffer.writeln('<th>Empleado</th>');
-    buffer.writeln('<th>Número</th>');
+    buffer.writeln('<th>NÃºmero</th>');
     buffer.writeln('<th>Tipo</th>');
     buffer.writeln('<th>Timestamp</th>');
-    buffer.writeln('<th>Método</th>');
+    buffer.writeln('<th>MÃ©todo</th>');
     buffer.writeln('<th>Latitud</th>');
     buffer.writeln('<th>Longitud</th>');
     buffer.writeln('<th>Hash</th>');
@@ -1787,14 +2497,15 @@ itemBuilder: (context, index) {
     buffer.writeln('</table></body></html>');
 
     final ahora = DateTime.now();
-    final nombreArchivo = 'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}';
-    
+    final nombreArchivo =
+        'Reporte_STPS_${ahora.year}${ahora.month.toString().padLeft(2, '0')}${ahora.day.toString().padLeft(2, '0')}';
+
     final bytes = Uint8List.fromList(utf8.encode(buffer.toString()));
-    
+
     await FileSaver.instance.saveFile(
       name: nombreArchivo,
       bytes: bytes,
-      fileExtension: 'xls',    // ← BIEN
+      fileExtension: 'xls', // â† BIEN
       mimeType: MimeType.microsoftExcel,
     );
 
@@ -1813,9 +2524,11 @@ itemBuilder: (context, index) {
   }
 
   Future<void> _editarChecada(Map<String, dynamic> registro) async {
-    final tipoController = TextEditingController(text: registro['tipoChecada'] ?? 'Entrada');
+    final tipoController = TextEditingController(
+      text: registro['tipoChecada'] ?? 'Entrada',
+    );
     final motivoController = TextEditingController();
-    
+
     // Parsear el timestamp actual
     DateTime? timestampSeleccionado;
     final timestampStr = registro['timestampServidor'] as String?;
@@ -1826,7 +2539,7 @@ itemBuilder: (context, index) {
         timestampSeleccionado = DateTime.now();
       }
     }
-    
+
     bool guardando = false;
 
     await showDialog(
@@ -1849,7 +2562,7 @@ itemBuilder: (context, index) {
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 16),
-                
+
                 // Tipo de checada
                 DropdownButtonFormField<String>(
                   value: tipoController.text,
@@ -1868,7 +2581,7 @@ itemBuilder: (context, index) {
                   },
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Fecha y hora del registro
                 InkWell(
                   onTap: () async {
@@ -1879,7 +2592,7 @@ itemBuilder: (context, index) {
                       lastDate: DateTime(2030),
                     );
                     if (fecha == null) return;
-                    
+
                     if (!context.mounted) return;
                     final hora = await showTimePicker(
                       context: context,
@@ -1888,11 +2601,14 @@ itemBuilder: (context, index) {
                       ),
                     );
                     if (hora == null) return;
-                    
+
                     setDialogState(() {
                       timestampSeleccionado = DateTime(
-                        fecha.year, fecha.month, fecha.day,
-                        hora.hour, hora.minute,
+                        fecha.year,
+                        fecha.month,
+                        fecha.day,
+                        hora.hour,
+                        hora.minute,
                       );
                     });
                   },
@@ -1911,21 +2627,25 @@ itemBuilder: (context, index) {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Motivo
                 TextField(
                   controller: motivoController,
                   decoration: const InputDecoration(
-                    labelText: 'Motivo de la corrección',
-                    hintText: 'Ej. El empleado marcó entrada por error',
+                    labelText: 'Motivo de la correcciÃ³n',
+                    hintText: 'Ej. El empleado marcÃ³ entrada por error',
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Nota: La corrección quedará registrada en la bitácora de auditoría.',
-                  style: TextStyle(fontSize: 12, color: Colors.black54, fontStyle: FontStyle.italic),
+                  'Nota: La correcciÃ³n quedarÃ¡ registrada en la bitÃ¡cora de auditorÃ­a.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ],
             ),
@@ -1942,8 +2662,10 @@ itemBuilder: (context, index) {
                       setDialogState(() => guardando = true);
                       try {
                         // Convertir el timestamp a UTC (ISO 8601)
-                        final timestampUtc = timestampSeleccionado?.toUtc().toIso8601String();
-                        
+                        final timestampUtc = timestampSeleccionado
+                            ?.toUtc()
+                            .toIso8601String();
+
                         await ApiService.editarChecada(
                           registroId: registro['registroId'],
                           tipoChecada: tipoController.text,
@@ -1982,9 +2704,332 @@ itemBuilder: (context, index) {
                   ? const SizedBox(
                       width: 16,
                       height: 16,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
                     )
                   : const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _eliminarChecada(Map<String, dynamic> registro) async {
+    final motivoController = TextEditingController();
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Checada'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Â¿EstÃ¡s seguro de eliminar esta checada?',
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Empleado: ${registro['empleado']} (${registro['numeroEmpleado']})',
+            ),
+            Text('Tipo: ${registro['tipoChecada']}'),
+            Text('MÃ©todo: ${registro['metodoUsado']}'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: motivoController,
+              decoration: const InputDecoration(
+                labelText: 'Motivo de la eliminaciÃ³n',
+                hintText: 'Ej. Checada duplicada por error',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Nota: La eliminaciÃ³n quedarÃ¡ registrada en la bitÃ¡cora de auditorÃ­a.',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.black54,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    try {
+      await ApiService.eliminarChecada(
+        registroId: registro['registroId'],
+        motivo: motivoController.text.trim().isEmpty
+            ? null
+            : motivoController.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Checada eliminada correctamente'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _generarReporte();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _nuevaChecada() async {
+    // Cargar lista de empleados (para el dropdown)
+    List<dynamic> empleados = [];
+    try {
+      empleados = await ApiService.listarEmpleados();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error cargando empleados: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (empleados.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No hay empleados registrados. Crea uno primero.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    String? empleadoSeleccionado = empleados[0]['empleadoId'] as String?;
+    String tipoChecada = 'Entrada';
+    DateTime timestampSeleccionado = DateTime.now();
+    final motivoController = TextEditingController();
+    bool guardando = false;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Nueva Checada Manual'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Crea una checada manualmente. QuedarÃ¡ registrada en la auditorÃ­a.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Empleado
+                DropdownButtonFormField<String>(
+                  value: empleadoSeleccionado,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Empleado',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: empleados
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e['empleadoId'] as String,
+                          child: Text(
+                            '${e['nombreCompleto']} (${e['numeroEmpleado']})',
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) =>
+                      setDialogState(() => empleadoSeleccionado = value),
+                ),
+                const SizedBox(height: 16),
+
+                // Tipo
+                DropdownButtonFormField<String>(
+                  value: tipoChecada,
+                  decoration: const InputDecoration(
+                    labelText: 'Tipo de checada',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'Entrada', child: Text('Entrada')),
+                    DropdownMenuItem(value: 'Salida', child: Text('Salida')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      setDialogState(() => tipoChecada = value);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Fecha y hora
+                InkWell(
+                  onTap: () async {
+                    final fecha = await showDatePicker(
+                      context: context,
+                      initialDate: timestampSeleccionado,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (fecha == null) return;
+
+                    if (!context.mounted) return;
+                    final hora = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.fromDateTime(
+                        timestampSeleccionado,
+                      ),
+                    );
+                    if (hora == null) return;
+
+                    setDialogState(() {
+                      timestampSeleccionado = DateTime(
+                        fecha.year,
+                        fecha.month,
+                        fecha.day,
+                        hora.hour,
+                        hora.minute,
+                      );
+                    });
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha y hora',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    child: Text(
+                      '${timestampSeleccionado.day.toString().padLeft(2, '0')}/${timestampSeleccionado.month.toString().padLeft(2, '0')}/${timestampSeleccionado.year} ${timestampSeleccionado.hour.toString().padLeft(2, '0')}:${timestampSeleccionado.minute.toString().padLeft(2, '0')}',
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Motivo
+                TextField(
+                  controller: motivoController,
+                  decoration: const InputDecoration(
+                    labelText: 'Motivo de la creaciÃ³n',
+                    hintText: 'Ej. El empleado olvidÃ³ checar',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: guardando ? null : () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: guardando
+                  ? null
+                  : () async {
+                      if (empleadoSeleccionado == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Selecciona un empleado'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      setDialogState(() => guardando = true);
+                      try {
+                        await ApiService.crearChecadaManual(
+                          empleadoId: empleadoSeleccionado!,
+                          tipoChecada: tipoChecada,
+                          timestampServidor: timestampSeleccionado
+                              .toUtc()
+                              .toIso8601String(),
+                          metodoUsado: 'Manual',
+                          motivoCreacion: motivoController.text.trim().isEmpty
+                              ? null
+                              : motivoController.text.trim(),
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Checada creada correctamente'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                          _generarReporte();
+                        }
+                      } catch (e) {
+                        setDialogState(() => guardando = false);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Error: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0F766E),
+                foregroundColor: Colors.white,
+              ),
+              child: guardando
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('Crear Checada'),
             ),
           ],
         ),
