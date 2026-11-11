@@ -9,6 +9,9 @@ import 'dashboard_home_screen.dart';
 import 'catalogo_sucursales_screen.dart';
 import 'catalogo_turnos_screen.dart';
 import 'asistencia_diaria_screen.dart';
+import 'horas_extra_screen.dart';
+import 'retardos_screen.dart';
+import 'ausencias_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -379,6 +382,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
 	        MaterialPageRoute(builder: (context) => const AsistenciaDiariaScreen()),
 	      );
 	    },
+	  ),
+	  ListTile(
+	    leading: const Icon(Icons.timer, color: Colors.white70),
+	    title: const Text('Horas Extra', style: TextStyle(color: Colors.white)),
+	    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const HorasExtraScreen())),
+	  ),
+	  ListTile(
+	    leading: const Icon(Icons.warning, color: Colors.white70),
+	    title: const Text('Retardos', style: TextStyle(color: Colors.white)),
+	    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RetardosScreen())),
+	  ),
+	  ListTile(
+	    leading: const Icon(Icons.person_off, color: Colors.white70),
+	    title: const Text('Ausencias', style: TextStyle(color: Colors.white)),
+	    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const AusenciasScreen())),
 	  ),
           _menuItem(4, Icons.receipt_long, 'Mi Suscripción'), // Corregido acento
           _menuItem(5, Icons.fact_check, 'Facturas'),

@@ -606,4 +606,60 @@ class ApiService {
     }
     throw Exception('Error al obtener asistencia');
   }
+
+  static Future<Map<String, dynamic>> obtenerReporteHorasExtra({
+    DateTime? fechaInicio,
+    DateTime? fechaFin,
+    String? cuentaId,
+    String? sucursalId,
+    String? empleadoId,
+  }) async {
+    final queryParams = {
+      if (fechaInicio != null) 'fechaInicio': fechaInicio.toIso8601String().split('T')[0],
+      if (fechaFin != null) 'fechaFin': fechaFin.toIso8601String().split('T')[0],
+      if (cuentaId != null) 'cuentaId': cuentaId,
+      if (sucursalId != null) 'sucursalId': sucursalId,
+      if (empleadoId != null) 'empleadoId': empleadoId,
+    };
+    final uri = Uri.parse('$baseUrl/api/analytics/horas-extra').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Error al obtener reporte de horas extra');
+  }
+
+  
+
+  static Future<Map<String, dynamic>> obtenerReporteRetardos({
+    DateTime? fechaInicio, DateTime? fechaFin, String? cuentaId, String? sucursalId, String? empleadoId,
+  }) async {
+    final queryParams = {
+      if (fechaInicio != null) 'fechaInicio': fechaInicio.toIso8601String().split('T')[0],
+      if (fechaFin != null) 'fechaFin': fechaFin.toIso8601String().split('T')[0],
+      if (cuentaId != null) 'cuentaId': cuentaId,
+      if (sucursalId != null) 'sucursalId': sucursalId,
+      if (empleadoId != null) 'empleadoId': empleadoId,
+    };
+    final uri = Uri.parse('$baseUrl/api/analytics/retardos').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+    throw Exception('Error al obtener reporte de retardos');
+  }
+
+  static Future<Map<String, dynamic>> obtenerReporteAusencias({
+    DateTime? fechaInicio, DateTime? fechaFin, String? cuentaId, String? sucursalId, String? empleadoId,
+  }) async {
+    final queryParams = {
+      if (fechaInicio != null) 'fechaInicio': fechaInicio.toIso8601String().split('T')[0],
+      if (fechaFin != null) 'fechaFin': fechaFin.toIso8601String().split('T')[0],
+      if (cuentaId != null) 'cuentaId': cuentaId,
+      if (sucursalId != null) 'sucursalId': sucursalId,
+      if (empleadoId != null) 'empleadoId': empleadoId,
+    };
+    final uri = Uri.parse('$baseUrl/api/analytics/ausencias').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers(withAuth: true));
+    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
+    throw Exception('Error al obtener reporte de ausencias');
+  }
 }
