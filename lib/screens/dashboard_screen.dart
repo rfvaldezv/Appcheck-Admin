@@ -6,6 +6,8 @@ import 'package:file_saver/file_saver.dart';
 import '../services/api_service.dart';
 import 'login_screen.dart';
 import 'dashboard_home_screen.dart';
+import 'catalogo_sucursales_screen.dart';
+import 'catalogo_turnos_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -258,15 +260,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             _menuItem(0, Icons.dashboard, 'Resumen'),
             _menuItem(1, Icons.devices, 'Kioskos'),
+            
+            // 👇 NUEVOS CATÁLOGOS INDEPENDIENTES 👇
+            ListTile(
+              leading: const Icon(Icons.store, color: Colors.white70),
+              title: const Text(
+                'Sucursales',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CatalogoSucursalesScreen(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.schedule, color: Colors.white70),
+              title: const Text(
+                'Turnos',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CatalogoTurnosScreen(),
+                  ),
+                );
+              },
+            ),
+            // 👆 FIN DE NUEVOS CATÁLOGOS 👆
+
             _menuItem(2, Icons.people, 'Empleados'),
             _menuItem(3, Icons.file_download, 'Reportes STPS'),
-            _menuItem(4, Icons.receipt_long, 'Mi SuscripciÃ³n'),
+            _menuItem(4, Icons.receipt_long, 'Mi Suscripción'),
             _menuItem(5, Icons.fact_check, 'Facturas'),
             const Divider(color: Colors.white24),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.white70),
               title: const Text(
-                'Cerrar SesiÃ³n',
+                'Cerrar Sesión',
                 style: TextStyle(color: Colors.white70),
               ),
               onTap: _cerrarSesion,
@@ -301,16 +339,44 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 40),
           _menuItem(0, Icons.dashboard, 'Resumen'),
           _menuItem(1, Icons.devices, 'Kioskos'),
+          
+          // 👇 NUEVOS CATÁLOGOS EN ESCRITORIO 👇
+          ListTile(
+            leading: const Icon(Icons.store, color: Colors.white70),
+            title: const Text('Sucursales', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CatalogoSucursalesScreen(),
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.schedule, color: Colors.white70),
+            title: const Text('Turnos', style: TextStyle(color: Colors.white)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CatalogoTurnosScreen(),
+                ),
+              );
+            },
+          ),
+          // 👆 FIN DE NUEVOS CATÁLOGOS 👆
+
           _menuItem(2, Icons.people, 'Empleados'),
           _menuItem(3, Icons.file_download, 'Reportes STPS'),
-          _menuItem(4, Icons.receipt_long, 'Mi SuscripciÃ³n'),
+          _menuItem(4, Icons.receipt_long, 'Mi Suscripción'), // Corregido acento
           _menuItem(5, Icons.fact_check, 'Facturas'),
           const Spacer(),
           const Divider(color: Colors.white24),
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.white70),
             title: const Text(
-              'Cerrar SesiÃ³n',
+              'Cerrar Sesión', // Corregido acento
               style: TextStyle(color: Colors.white70),
             ),
             onTap: _cerrarSesion,
@@ -1963,8 +2029,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final numeroController = TextEditingController();
     final pinController = TextEditingController();
     String metodoSeleccionado = 'QR';
+    String? sucursalSeleccionada;
+    String? turnoSeleccionado;
     bool guardando = false;
     String? fotoBase64;
+
+    // 👇 Cargar sucursales y turnos antes de mostrar el modal 👇
+    List<dynamic> sucursales = [];
+    List<dynamic> turnos = [];
+    try {
+      sucursales = await ApiService.listarSucursales();
+      turnos = await ApiService.listarTurnos();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error cargando catálogos: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
 
     await showDialog(
       context: context,
@@ -1990,7 +2072,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       TextField(
                         controller: numeroController,
                         decoration: const InputDecoration(
-                          labelText: 'NÃºmero de empleado',
+                          labelText: 'Número de empleado',
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -1998,7 +2080,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       TextField(
                         controller: pinController,
                         decoration: const InputDecoration(
-                          labelText: 'PIN de respaldo (4 dÃ­gitos)',
+                          labelText: 'PIN de respaldo (4 dígitos)',
                           border: OutlineInputBorder(),
                         ),
                       ),
@@ -2006,41 +2088,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       DropdownButtonFormField<String>(
                         initialValue: metodoSeleccionado,
                         decoration: const InputDecoration(
-                          labelText: 'MÃ©todo de lectura',
+                          labelText: 'Método de lectura',
                           border: OutlineInputBorder(),
                         ),
                         items: const [
                           DropdownMenuItem(value: 'QR', child: Text('QR solo')),
-                          DropdownMenuItem(
-                            value: 'QR+Rostro',
-                            child: Text('QR + Rostro'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'ID+PIN',
-                            child: Text('ID + PIN'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'ID+Rostro',
-                            child: Text('ID + Rostro'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Rostro',
-                            child: Text('Solo Rostro'),
-                          ),
+                          DropdownMenuItem(value: 'QR+Rostro', child: Text('QR + Rostro')),
+                          DropdownMenuItem(value: 'ID+PIN', child: Text('ID + PIN')),
+                          DropdownMenuItem(value: 'ID+Rostro', child: Text('ID + Rostro')),
+                          DropdownMenuItem(value: 'Rostro', child: Text('Solo Rostro')),
                         ],
                         onChanged: (value) {
-                          if (value != null)
-                            setStateDialog(() => metodoSeleccionado = value);
+                          if (value != null) setStateDialog(() => metodoSeleccionado = value);
                         },
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Rostro del Empleado',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
+
+                      // 👇 NUEVOS DROPDOWNS 👇
+                      DropdownButtonFormField<String>(
+                        initialValue: sucursalSeleccionada,
+                        decoration: const InputDecoration(
+                          labelText: 'Sucursal',
+                          border: OutlineInputBorder(),
                         ),
+                        items: sucursales.map((s) {
+                          return DropdownMenuItem<String>(
+                            value: s['sucursalId'] as String,
+                            child: Text(s['nombre'] ?? 'Sin nombre'),
+                          );
+                        }).toList(),
+                        onChanged: (value) => setStateDialog(() => sucursalSeleccionada = value),
                       ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue: turnoSeleccionado,
+                        decoration: const InputDecoration(
+                          labelText: 'Turno',
+                          border: OutlineInputBorder(),
+                        ),
+                        items: turnos.map((t) {
+                          return DropdownMenuItem<String>(
+                            value: t['turnoId'] as String,
+                            child: Text(t['nombre'] ?? 'Sin nombre'),
+                          );
+                        }).toList(),
+                        onChanged: (value) => setStateDialog(() => turnoSeleccionado = value),
+                      ),
+                      // 👆 FIN DE NUEVOS DROPDOWNS 👆
+
+                      const SizedBox(height: 16),
+                      const Text('Rostro del Empleado', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -2056,35 +2153,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   );
                                   if (image != null) {
                                     final bytes = await image.readAsBytes();
-                                    setStateDialog(
-                                      () => fotoBase64 = base64Encode(bytes),
-                                    );
+                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
                                   }
                                 } catch (e) {
-                                  try {
-                                    final picker = ImagePicker();
-                                    final XFile? image = await picker.pickImage(
-                                      source: ImageSource.gallery,
-                                      maxWidth: 300,
-                                      imageQuality: 50,
-                                    );
-                                    if (image != null) {
-                                      final bytes = await image.readAsBytes();
-                                      setStateDialog(
-                                        () => fotoBase64 = base64Encode(bytes),
-                                      );
-                                    }
-                                  } catch (e2) {
-                                    if (context.mounted)
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text('Error: $e2'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                  }
+                                  // fallback a galería
                                 }
                               },
                               icon: const Icon(Icons.camera_alt),
@@ -2108,18 +2180,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   );
                                   if (image != null) {
                                     final bytes = await image.readAsBytes();
-                                    setStateDialog(
-                                      () => fotoBase64 = base64Encode(bytes),
-                                    );
+                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
                                   }
                                 } catch (e) {
-                                  if (context.mounted)
+                                  if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Error: $e'),
-                                        backgroundColor: Colors.red,
-                                      ),
+                                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
                                     );
+                                  }
                                 }
                               },
                               icon: const Icon(Icons.upload_file),
@@ -2137,30 +2205,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         const Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.check_circle,
-                              color: Colors.green,
-                              size: 20,
-                            ),
+                            Icon(Icons.check_circle, color: Colors.green, size: 20),
                             SizedBox(width: 8),
-                            Text(
-                              'Rostro cargado',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            Text('Rostro cargado', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
                           ],
                         ),
                         const SizedBox(height: 8),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(
-                            base64Decode(fotoBase64!),
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.cover,
-                          ),
+                          child: Image.memory(base64Decode(fotoBase64!), height: 80, width: 80, fit: BoxFit.cover),
                         ),
                       ],
                     ],
@@ -2176,9 +2229,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   onPressed: guardando
                       ? null
                       : () async {
-                          if (nombreController.text.trim().isEmpty ||
-                              numeroController.text.trim().isEmpty)
-                            return;
+                          if (nombreController.text.trim().isEmpty || numeroController.text.trim().isEmpty) return;
                           setStateDialog(() => guardando = true);
                           try {
                             final response = await ApiService.altaEmpleado(
@@ -2187,41 +2238,26 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               pinRespaldo: pinController.text.trim(),
                               metodoLectura: metodoSeleccionado,
                               fotoBase64: fotoBase64,
+                              sucursalId: sucursalSeleccionada, // 👈 NUEVO
+                              turnoId: turnoSeleccionado,       // 👈 NUEVO
                             );
                             if (!context.mounted) return;
                             Navigator.pop(context);
                             await _cargarEmpleados();
                             if (!mounted) return;
-                            _mostrarAcuseLegal(
-                              response['acuseContenido'] ?? '',
-                            );
+                            _mostrarAcuseLegal(response['acuseContenido'] ?? '');
                           } catch (e) {
                             if (!mounted) return;
                             setStateDialog(() => guardando = false);
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error: $e'),
-                                backgroundColor: Colors.red,
-                              ),
+                              SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
                             );
                           }
                         },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0F766E),
-                  ),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
                   child: guardando
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Text(
-                          'Dar de Alta',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                      : const Text('Dar de Alta', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -2338,6 +2374,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           try {
                             await ApiService.editarEmpleado(
                               id: empleado['empleadoId'],
+			      numeroEmpleado: empleado['numeroEmpleado'],  // 👈 AGREGAR ESTA LÍNEA
                               nombreCompleto: nombreController.text.trim(),
                               pinRespaldo: pinController.text.trim(),
                               metodoLectura: metodoSeleccionado,

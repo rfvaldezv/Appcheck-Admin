@@ -147,6 +147,8 @@ class ApiService {
     required String pinRespaldo,
     required String metodoLectura,
     String? fotoBase64,
+    String? sucursalId,  // 👈 NUEVO
+    String? turnoId,     // 👈 NUEVO
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/employee'),
@@ -156,35 +158,46 @@ class ApiService {
         'nombreCompleto': nombreCompleto,
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
-        'fotoBase64': fotoBase64,
+        if (fotoBase64 != null) 'fotoBase64': fotoBase64,
+        if (sucursalId != null) 'sucursalId': sucursalId,  // 👈 NUEVO
+        if (turnoId != null) 'turnoId': turnoId,            // 👈 NUEVO
       }),
-    ).timeout(const Duration(seconds: 120));
-    if (response.statusCode == 200) return jsonDecode(utf8.decode(response.bodyBytes));
-    throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al dar de alta empleado');
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
+    }
+    throw Exception('Error al dar de alta: ${response.body}');
   }
 
-  static Future<void> editarEmpleado({
+  static Future<Map<String, dynamic>> editarEmpleado({
     required String id,
+    required String numeroEmpleado,
     required String nombreCompleto,
     required String pinRespaldo,
     required String metodoLectura,
     required String estado,
     String? fotoBase64,
+    String? sucursalId,  // 👈 NUEVO
+    String? turnoId,     // 👈 NUEVO
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/api/employee/$id'),
       headers: _headers(withAuth: true),
       body: jsonEncode({
+        'numeroEmpleado': numeroEmpleado,
         'nombreCompleto': nombreCompleto,
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
         'estado': estado,
-        'fotoBase64': fotoBase64,
+        if (fotoBase64 != null) 'fotoBase64': fotoBase64,
+        if (sucursalId != null) 'sucursalId': sucursalId,  // 👈 NUEVO
+        if (turnoId != null) 'turnoId': turnoId,            // 👈 NUEVO
       }),
-    ).timeout(const Duration(seconds: 120));
-    if (response.statusCode != 200) {
-      throw Exception(jsonDecode(utf8.decode(response.bodyBytes))['mensaje'] ?? 'Error al editar empleado');
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(utf8.decode(response.bodyBytes));
     }
+    throw Exception('Error al editar: ${response.body}');
   }
 
   static Future<void> eliminarEmpleado(String id) async {
@@ -399,5 +412,103 @@ class ApiService {
       return jsonDecode(utf8.decode(response.bodyBytes));
     }
     throw Exception(jsonDecode(response.body)['mensaje'] ?? 'Error al crear checada');
+  }
+
+  // =====================================================
+  // SUCURSALES
+  // =====================================================
+  static Future<List<dynamic>> listarSucursales() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Sucursal'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      // Manejo por si el backend devuelve un objeto único en lugar de un array
+      if (data is List) return data;
+      if (data is Map) return [data];
+      return [];
+    }
+    throw Exception('Error al cargar sucursales');
+  }
+
+  static Future<void> crearSucursal({
+    required String nombre,
+    String? direccion,
+    double? latitud,
+    double? longitud,
+    int? radioMetros,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/Sucursal'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'nombre': nombre,
+        'direccion': direccion,
+        'latitud': latitud,
+        'longitud': longitud,
+        'radioMetros': radioMetros ?? 100,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Error al crear sucursal: ${response.body}');
+    }
+  }
+
+  // =====================================================
+  // TURNOS
+  // =====================================================
+  static Future<List<dynamic>> listarTurnos() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/Turno'),
+      headers: _headers(withAuth: true),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data is List) return data;
+      if (data is Map) return [data];
+      return [];
+    }
+    throw Exception('Error al cargar turnos');
+  }
+
+  static Future<void> crearTurno({
+    required String nombre,
+    required String colorHex,
+    required List<Map<String, dynamic>> detalles,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/Turno'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'nombre': nombre,
+        'colorHex': colorHex,
+        'detalles': detalles,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Error al crear turno: ${response.body}');
+    }
+  }
+
+  static Future<void> asignarTurno({
+    required String empleadoId,
+    required String turnoId,
+    required String fechaInicio,
+    String? fechaFin,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/Turno/asignar'),
+      headers: _headers(withAuth: true),
+      body: jsonEncode({
+        'empleadoId': empleadoId,
+        'turnoId': turnoId,
+        'fechaInicio': fechaInicio,
+        'fechaFin': fechaFin,
+      }),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Error al asignar turno: ${response.body}');
+    }
   }
 }
