@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -480,13 +480,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 0:
         return 'Resumen General';
       case 1:
-        return 'GestiÃ³n de Kioskos';
+        return 'Gestión de Kioskos';
       case 2:
-        return 'GestiÃ³n de Empleados';
+        return 'Gestión de Empleados';
       case 3:
         return 'Reportes STPS';
       case 4:
-        return 'Mi SuscripciÃ³n';
+        return 'Mi Suscripción';
       case 5:
         return 'Facturas';
       default:
@@ -607,7 +607,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ? Center(
                     child: Text(
                       _kioskos.isEmpty
-                          ? 'No hay kioskos registrados todavÃ­a.\nUsa "Alta Directa" para crear uno.'
+                          ? 'No hay kioskos registrados todavía.\nUsa "Alta Directa" para crear uno.'
                           : 'No se encontraron kioskos con ese nombre.',
                       textAlign: TextAlign.center,
                       style: const TextStyle(
@@ -651,7 +651,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Text(
-                            '${kiosko['tipo']} â€¢ Device: ${kiosko['deviceId'] ?? 'N/A'}',
+                            '${kiosko['tipo']} - Device: ${kiosko['deviceId'] ?? 'N/A'}',
                             style: const TextStyle(fontSize: 12),
                           ),
                           trailing: Row(
@@ -669,7 +669,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                     Icons.vpn_key,
                                     color: Colors.purple,
                                   ),
-                                  tooltip: 'Regenerar cÃ³digo',
+                                  tooltip: 'Regenerar código',
                                   onPressed: () =>
                                       _regenerarCodigoYMostrar(kiosko),
                                 ),
@@ -786,7 +786,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 width: 250,
                 child: TextField(
                   decoration: InputDecoration(
-                    labelText: 'Buscar por nombre o nÃºmero...',
+                    labelText: 'Buscar por nombre o número...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -898,10 +898,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'NÃ³mina: ${empleado['numeroEmpleado']} â€¢ MÃ©todo: ${empleado['metodoLecturaPreferido']}',
+                                'Nómina: ${empleado['numeroEmpleado']} - Método: ${empleado['metodoLecturaPreferido']}',
                               ),
                               Text(
-                                'Empresa: ${empleado['empresa'] ?? 'N/A'} â€¢ Vendedor: ${empleado['vendedor'] ?? 'Sin vendedor'}',
+                                'Empresa: ${empleado['empresa'] ?? 'N/A'} - Vendedor: ${empleado['vendedor'] ?? 'Sin vendedor'}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.black54,
@@ -1085,7 +1085,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: DropdownButtonFormField<String>(
                         value: _filtroMetodo,
                         decoration: const InputDecoration(
-                          labelText: 'MÃ©todo',
+                          labelText: 'Método',
                           border: OutlineInputBorder(),
                         ),
                         items: [
@@ -1107,7 +1107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                // BotÃ³n Generar
+                // Botón Generar
                 Row(
                   children: [
                     Expanded(
@@ -1215,7 +1215,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                       : Colors.orange,
                                 ),
                                 title: Text('$empleado ($numero)'),
-                                subtitle: Text('$tipo â€¢ $fechaFormateada'),
+                                subtitle: Text('$tipo - $fechaFormateada'),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -1261,7 +1261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Mi SuscripciÃ³n',
+            'Mi Suscripción',
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 24),
@@ -1280,7 +1280,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Icon(Icons.warning_amber, size: 64, color: Colors.orange),
                   SizedBox(height: 16),
                   Text(
-                    'No tienes una suscripciÃ³n activa.',
+                    'No tienes una suscripción activa.',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ],
@@ -1321,11 +1321,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     '\$${_suscripcionActual!['plan']['precioBase']} MXN/mes',
                   ),
                   _infoRow(
-                    'LÃ­mite de empleados',
+                    'L­ímite de empleados',
                     '${_suscripcionActual!['plan']['limiteEmpleados']} empleados',
                   ),
                   _infoRow(
-                    'LÃ­mite de kioskos',
+                    'Lí­mite de kioskos',
                     '${_suscripcionActual!['plan']['limiteKioskos']} kioskos',
                   ),
                   _infoRow('Estado', _suscripcionActual!['estado'] ?? 'Activa'),
@@ -1532,7 +1532,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _generarFacturaDelMes() async {
     setState(() => _cargandoFacturas = true);
     try {
-      final factura = await ApiService.generarFactura(); // â† Bien
+      final factura = await ApiService.generarFactura();
       if (!mounted) return;
       setState(() {
         _facturas.insert(0, factura);
@@ -1586,7 +1586,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await FileSaver.instance.saveFile(
       name: nombreArchivo,
       bytes: bytes,
-      fileExtension: 'csv', // â† BIEN
+      fileExtension: 'csv',
       mimeType: MimeType.csv,
     );
 
@@ -1696,7 +1696,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             ),
                             const SizedBox(height: 16),
                             const Text(
-                              'Â¡Kiosko registrado!',
+                              '¡Kiosko registrado!',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -1908,8 +1908,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Â¿Revocar kiosko?'),
-        content: const Text('El kiosko dejarÃ¡ de checar.'),
+        title: const Text('¿Revocar kiosko?'),
+        content: const Text('El kiosko dejará de checar.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1944,8 +1944,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Â¿Eliminar kiosko?'),
-        content: const Text('Esta acciÃ³n es permanente.'),
+        title: const Text('¿Eliminar kiosko?'),
+        content: const Text('Esta acción es permanente.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -1989,7 +1989,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('CÃ³digo Generado'),
+          title: const Text('Código Generado'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -2339,7 +2339,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       DropdownButtonFormField<String>(
                         initialValue: metodoSeleccionado,
                         decoration: const InputDecoration(
-                          labelText: 'MÃ©todo de lectura',
+                          labelText: 'Método de lectura',
                           border: OutlineInputBorder(),
                         ),
                         items: const [
@@ -2355,7 +2355,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                           DropdownMenuItem(
                             value: 'Rostro',
-                            child: Text('Solo Rostro (prÃ³ximamente)'),
+                            child: Text('Solo Rostro (próximamente)'),
                           ),
                         ],
                         onChanged: (value) {
@@ -2458,8 +2458,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Â¿Eliminar empleado?'),
-        content: const Text('Esta acciÃ³n es permanente.'),
+        title: const Text('¿Eliminar empleado?'),
+        content: const Text('Esta acción es permanente.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -2529,10 +2529,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     buffer.writeln('<table border="1">');
     buffer.writeln('<tr>');
     buffer.writeln('<th>Empleado</th>');
-    buffer.writeln('<th>NÃºmero</th>');
+    buffer.writeln('<th>Número</th>');
     buffer.writeln('<th>Tipo</th>');
     buffer.writeln('<th>Timestamp</th>');
-    buffer.writeln('<th>MÃ©todo</th>');
+    buffer.writeln('<th>Método</th>');
     buffer.writeln('<th>Latitud</th>');
     buffer.writeln('<th>Longitud</th>');
     buffer.writeln('<th>Hash</th>');
@@ -2571,7 +2571,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     await FileSaver.instance.saveFile(
       name: nombreArchivo,
       bytes: bytes,
-      fileExtension: 'xls', // â† BIEN
+      fileExtension: 'xls',
       mimeType: MimeType.microsoftExcel,
     );
 
@@ -2698,15 +2698,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 TextField(
                   controller: motivoController,
                   decoration: const InputDecoration(
-                    labelText: 'Motivo de la correcciÃ³n',
-                    hintText: 'Ej. El empleado marcÃ³ entrada por error',
+                    labelText: 'Motivo de la corrección',
+                    hintText: 'Ej. El empleado marcó entrada por error',
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
                 const Text(
-                  'Nota: La correcciÃ³n quedarÃ¡ registrada en la bitÃ¡cora de auditorÃ­a.',
+                  'Nota: La corrección quedará registrada en la bitácora de auditoría.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.black54,
@@ -2795,7 +2795,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Â¿EstÃ¡s seguro de eliminar esta checada?',
+              '¿Estás seguro de eliminar esta checada?',
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.red,
@@ -2806,12 +2806,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
               'Empleado: ${registro['empleado']} (${registro['numeroEmpleado']})',
             ),
             Text('Tipo: ${registro['tipoChecada']}'),
-            Text('MÃ©todo: ${registro['metodoUsado']}'),
+            Text('Método: ${registro['metodoUsado']}'),
             const SizedBox(height: 16),
             TextField(
               controller: motivoController,
               decoration: const InputDecoration(
-                labelText: 'Motivo de la eliminaciÃ³n',
+                labelText: 'Motivo de la eliminación',
                 hintText: 'Ej. Checada duplicada por error',
                 border: OutlineInputBorder(),
               ),
@@ -2819,7 +2819,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Nota: La eliminaciÃ³n quedarÃ¡ registrada en la bitÃ¡cora de auditorÃ­a.',
+              'Nota: La eliminación quedará registrada en la bitácora de auditorí­a.',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.black54,
@@ -2919,7 +2919,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Crea una checada manualmente. QuedarÃ¡ registrada en la auditorÃ­a.',
+                  'Crea una checada manualmente. Quedará registrada en la auditoría.',
                   style: TextStyle(
                     fontSize: 12,
                     color: Colors.black54,
@@ -3019,8 +3019,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 TextField(
                   controller: motivoController,
                   decoration: const InputDecoration(
-                    labelText: 'Motivo de la creaciÃ³n',
-                    hintText: 'Ej. El empleado olvidÃ³ checar',
+                    labelText: 'Motivo de la creación',
+                    hintText: 'Ej. El empleado olvidó checar',
                     border: OutlineInputBorder(),
                   ),
                   maxLines: 2,
