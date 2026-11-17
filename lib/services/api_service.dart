@@ -146,9 +146,9 @@ class ApiService {
     required String nombreCompleto,
     required String pinRespaldo,
     required String metodoLectura,
-    String? fotoBase64,
-    String? sucursalId,  // 👈 NUEVO
-    String? turnoId,     // 👈 NUEVO
+    List<String>? fotosBase64,  // 👈 CAMBIO: Lista de fotos
+    String? sucursalId,
+    String? turnoId,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/employee'),
@@ -158,9 +158,9 @@ class ApiService {
         'nombreCompleto': nombreCompleto,
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
-        if (fotoBase64 != null) 'fotoBase64': fotoBase64,
-        if (sucursalId != null) 'sucursalId': sucursalId,  // 👈 NUEVO
-        if (turnoId != null) 'turnoId': turnoId,            // 👈 NUEVO
+        if (fotosBase64 != null && fotosBase64.isNotEmpty) 'fotosBase64': fotosBase64, // 👈 Lista
+        if (sucursalId != null) 'sucursalId': sucursalId,
+        if (turnoId != null) 'turnoId': turnoId,
       }),
     );
     if (response.statusCode == 200) {
@@ -176,9 +176,9 @@ class ApiService {
     required String pinRespaldo,
     required String metodoLectura,
     required String estado,
-    String? fotoBase64,
-    String? sucursalId,  // 👈 NUEVO
-    String? turnoId,     // 👈 NUEVO
+    List<String>? fotosBase64,  // 👈 CAMBIO: Lista de fotos
+    String? sucursalId,
+    String? turnoId,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl/api/employee/$id'),
@@ -189,9 +189,9 @@ class ApiService {
         'pinRespaldo': pinRespaldo,
         'metodoLecturaPreferido': metodoLectura,
         'estado': estado,
-        if (fotoBase64 != null) 'fotoBase64': fotoBase64,
-        if (sucursalId != null) 'sucursalId': sucursalId,  // 👈 NUEVO
-        if (turnoId != null) 'turnoId': turnoId,            // 👈 NUEVO
+        if (fotosBase64 != null && fotosBase64.isNotEmpty) 'fotosBase64': fotosBase64, // 👈 Lista
+        if (sucursalId != null) 'sucursalId': sucursalId,
+        if (turnoId != null) 'turnoId': turnoId,
       }),
     );
     if (response.statusCode == 200) {

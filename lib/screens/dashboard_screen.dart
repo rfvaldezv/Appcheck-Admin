@@ -12,6 +12,9 @@ import 'asistencia_diaria_screen.dart';
 import 'horas_extra_screen.dart';
 import 'retardos_screen.dart';
 import 'ausencias_screen.dart';
+import 'package:camera/camera.dart';
+import '../widgets/camara_web_dialog.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -1863,15 +1866,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ElevatedButton(
                   onPressed: () async {
                     if (nombreController.text.trim().isEmpty) return;
+                    
+                    // Guardamos el context del diálogo antes del await
+                    final dialogContext = context;
+                    
                     try {
                       await ApiService.editarKiosko(
                         id: kiosko['puntoLecturaId'],
                         nombre: nombreController.text.trim(),
                         tipo: tipoSeleccionado,
                       );
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
+                      
+                      if (!dialogContext.mounted) return;
+                      Navigator.pop(dialogContext);
+                      
                       await _cargarKioskos();
+                      
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -2061,20 +2071,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     String? sucursalSeleccionada;
     String? turnoSeleccionado;
     bool guardando = false;
-    String? fotoBase64;
+    
+    // 👇 Listas para las 3 fotos (índice 0: Frontal, 1: Izquierda, 2: Derecha)
+    final List<String?> fotos = [null, null, null];
+    final List<String> etiquetas = ['Foto Frontal (Obligatoria)', 'Perfil Izquierdo (Recomendada)', 'Perfil Derecho (Recomendada)'];
 
-    // 👇 Cargar sucursales y turnos antes de mostrar el modal 👇
     List<dynamic> sucursales = [];
     List<dynamic> turnos = [];
     try {
       sucursales = await ApiService.listarSucursales();
       turnos = await ApiService.listarTurnos();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error cargando catálogos: $e'), backgroundColor: Colors.red),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error cargando catálogos: $e'), backgroundColor: Colors.red));
     }
 
     await showDialog(
@@ -2090,36 +2098,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      TextField(
-                        controller: nombreController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nombre completo',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
+                      TextField(controller: nombreController, decoration: const InputDecoration(labelText: 'Nombre completo', border: OutlineInputBorder())),
                       const SizedBox(height: 16),
-                      TextField(
-                        controller: numeroController,
-                        decoration: const InputDecoration(
-                          labelText: 'Número de empleado',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
+                      TextField(controller: numeroController, decoration: const InputDecoration(labelText: 'Número de empleado', border: OutlineInputBorder())),
                       const SizedBox(height: 16),
-                      TextField(
-                        controller: pinController,
-                        decoration: const InputDecoration(
-                          labelText: 'PIN de respaldo (4 dígitos)',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
+                      TextField(controller: pinController, decoration: const InputDecoration(labelText: 'PIN de respaldo (4 dígitos)', border: OutlineInputBorder())),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         initialValue: metodoSeleccionado,
-                        decoration: const InputDecoration(
-                          labelText: 'Método de lectura',
-                          border: OutlineInputBorder(),
-                        ),
+                        decoration: const InputDecoration(labelText: 'Método de lectura', border: OutlineInputBorder()),
                         items: const [
                           DropdownMenuItem(value: 'QR', child: Text('QR solo')),
                           DropdownMenuItem(value: 'QR+Rostro', child: Text('QR + Rostro')),
@@ -2127,148 +2114,153 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           DropdownMenuItem(value: 'ID+Rostro', child: Text('ID + Rostro')),
                           DropdownMenuItem(value: 'Rostro', child: Text('Solo Rostro')),
                         ],
-                        onChanged: (value) {
-                          if (value != null) setStateDialog(() => metodoSeleccionado = value);
-                        },
+                        onChanged: (value) => setStateDialog(() => metodoSeleccionado = value!),
                       ),
                       const SizedBox(height: 16),
-
-                      // 👇 NUEVOS DROPDOWNS 👇
                       DropdownButtonFormField<String>(
                         initialValue: sucursalSeleccionada,
-                        decoration: const InputDecoration(
-                          labelText: 'Sucursal',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: sucursales.map((s) {
-                          return DropdownMenuItem<String>(
-                            value: s['sucursalId'] as String,
-                            child: Text(s['nombre'] ?? 'Sin nombre'),
-                          );
-                        }).toList(),
+                        decoration: const InputDecoration(labelText: 'Sucursal', border: OutlineInputBorder()),
+                        items: sucursales.map((s) => DropdownMenuItem(value: s['sucursalId'] as String, child: Text(s['nombre'] ?? 'Sin nombre'))).toList(),
                         onChanged: (value) => setStateDialog(() => sucursalSeleccionada = value),
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
                         initialValue: turnoSeleccionado,
-                        decoration: const InputDecoration(
-                          labelText: 'Turno',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: turnos.map((t) {
-                          return DropdownMenuItem<String>(
-                            value: t['turnoId'] as String,
-                            child: Text(t['nombre'] ?? 'Sin nombre'),
-                          );
-                        }).toList(),
+                        decoration: const InputDecoration(labelText: 'Turno', border: OutlineInputBorder()),
+                        items: turnos.map((t) => DropdownMenuItem(value: t['turnoId'] as String, child: Text(t['nombre'] ?? 'Sin nombre'))).toList(),
                         onChanged: (value) => setStateDialog(() => turnoSeleccionado = value),
                       ),
-                      // 👆 FIN DE NUEVOS DROPDOWNS 👆
-
                       const SizedBox(height: 16),
-                      const Text('Rostro del Empleado', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      const Text('Registro Facial (3 Fotos)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                try {
-                                  final picker = ImagePicker();
-                                  final XFile? image = await picker.pickImage(
-                                    source: ImageSource.camera,
-                                    maxWidth: 300,
-                                    imageQuality: 50,
-                                  );
-                                  if (image != null) {
-                                    final bytes = await image.readAsBytes();
-                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
-                                  }
-                                } catch (e) {
-                                  // fallback a galería
-                                }
-                              },
-                              icon: const Icon(Icons.camera_alt),
-                              label: const Text('Tomar'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue.shade700,
-                                foregroundColor: Colors.white,
+                      
+                      // 👇 BOTONES DE FOTO CON CÁMARA WEB Y MÓVIL 👇
+                      ...List.generate(3, (index) {
+                        final tieneFoto = fotos[index] != null;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    String? fotoBase64;
+
+                                    if (kIsWeb) {
+                                      // 🌐 EN WEB: Abrir cámara web
+                                      try {
+                                        final cameras = await availableCameras();
+                                        if (cameras.isNotEmpty) {
+                                          fotoBase64 = await showDialog<String>(
+                                            context: context,
+                                            builder: (context) => const CamaraWebDialog(),
+                                          );
+                                        } else {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('No se detectó cámara web. Verifica que esté conectada y que el navegador tenga permiso.'),
+                                                backgroundColor: Colors.orange,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Error al abrir cámara: $e'), backgroundColor: Colors.red),
+                                          );
+                                        }
+                                      }
+                                    } else {
+                                      // 📱 EN MÓVIL: Usar cámara nativa
+                                      try {
+                                        final picker = ImagePicker();
+                                        final XFile? image = await picker.pickImage(
+                                          source: ImageSource.camera,
+                                          maxWidth: 300,
+                                          imageQuality: 50,
+                                        );
+                                        if (image != null) {
+                                          final bytes = await image.readAsBytes();
+                                          fotoBase64 = base64Encode(bytes);
+                                        }
+                                      } catch (e) {
+                                        // Fallback a galería
+                                        try {
+                                          final picker = ImagePicker();
+                                          final XFile? image = await picker.pickImage(
+                                            source: ImageSource.gallery,
+                                            maxWidth: 300,
+                                            imageQuality: 50,
+                                          );
+                                          if (image != null) {
+                                            final bytes = await image.readAsBytes();
+                                            fotoBase64 = base64Encode(bytes);
+                                          }
+                                        } catch (e2) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text('Error: $e2'), backgroundColor: Colors.red),
+                                            );
+                                          }
+                                        }
+                                      }
+                                    }
+
+                                    if (fotoBase64 != null) {
+                                      setStateDialog(() => fotos[index] = fotoBase64);
+                                    }
+                                  },
+                                  icon: Icon(tieneFoto ? Icons.check_circle : Icons.camera_alt, color: Colors.white),
+                                  label: Text(etiquetas[index]),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: tieneFoto ? Colors.green : (index == 0 ? Colors.blue.shade700 : Colors.grey.shade600),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                ),
                               ),
-                            ),
+                              if (tieneFoto)
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () => setStateDialog(() => fotos[index] = null),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: () async {
-                                try {
-                                  final picker = ImagePicker();
-                                  final XFile? image = await picker.pickImage(
-                                    source: ImageSource.gallery,
-                                    maxWidth: 300,
-                                    imageQuality: 50,
-                                  );
-                                  if (image != null) {
-                                    final bytes = await image.readAsBytes();
-                                    setStateDialog(() => fotoBase64 = base64Encode(bytes));
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                                    );
-                                  }
-                                }
-                              },
-                              icon: const Icon(Icons.upload_file),
-                              label: const Text('Subir'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.grey.shade700,
-                                foregroundColor: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (fotoBase64 != null) ...[
-                        const SizedBox(height: 12),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle, color: Colors.green, size: 20),
-                            SizedBox(width: 8),
-                            Text('Rostro cargado', style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.memory(base64Decode(fotoBase64!), height: 80, width: 80, fit: BoxFit.cover),
-                        ),
-                      ],
+                        );
+                      }),
                     ],
                   ),
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
-                ),
+                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancelar')),
                 ElevatedButton(
                   onPressed: guardando
                       ? null
                       : () async {
                           if (nombreController.text.trim().isEmpty || numeroController.text.trim().isEmpty) return;
+                          
+                          // Validar que si el método requiere rostro, al menos la foto frontal esté
+                          final metodosConRostro = ['QR+Rostro', 'ID+Rostro', 'Rostro'];
+                          if (metodosConRostro.contains(metodoSeleccionado) && fotos[0] == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('El método seleccionado requiere al menos la foto frontal.'), backgroundColor: Colors.red));
+                            return;
+                          }
+
                           setStateDialog(() => guardando = true);
                           try {
+                            // Filtrar las fotos no nulas
+                            final fotosValidas = fotos.where((f) => f != null).cast<String>().toList();
+                            
                             final response = await ApiService.altaEmpleado(
                               numeroEmpleado: numeroController.text.trim(),
                               nombreCompleto: nombreController.text.trim(),
                               pinRespaldo: pinController.text.trim(),
                               metodoLectura: metodoSeleccionado,
-                              fotoBase64: fotoBase64,
-                              sucursalId: sucursalSeleccionada, // 👈 NUEVO
-                              turnoId: turnoSeleccionado,       // 👈 NUEVO
+                              fotosBase64: fotosValidas, // 👈 Enviar la lista
+                              sucursalId: sucursalSeleccionada,
+                              turnoId: turnoSeleccionado,
                             );
                             if (!context.mounted) return;
                             Navigator.pop(context);
@@ -2278,9 +2270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           } catch (e) {
                             if (!mounted) return;
                             setStateDialog(() => guardando = false);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
                           }
                         },
                   style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F766E)),
