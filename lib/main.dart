@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'screens/login_screen.dart';
 
 void main() {
+  // 👇 ESTA LÍNEA ES LA CLAVE: inicializa los plugins antes de runApp
+  WidgetsFlutterBinding.ensureInitialized();
+  
   runApp(const AppCheckAdminApp());
 }
 

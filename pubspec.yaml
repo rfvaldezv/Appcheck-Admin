@@ -22,6 +22,7 @@ dependencies:
   printing: ^5.15.1
   flutter_launcher_icons: ^0.14.4
   camera: ^0.12.2
+  camera_web: ^0.3.6
 
 dev_dependencies:
   flutter_test:
