@@ -13,6 +13,7 @@ import 'retardos_screen.dart';
 import 'ausencias_screen.dart';
 import '../widgets/empleado_modal.dart';
 import '../widgets/kiosko_modal.dart';
+import '../widgets/reportes_ui.dart';
 
 class DashboardScreen extends StatefulWidget {
   final Map<String, dynamic> usuario;
@@ -504,7 +505,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 2:
         return _buildEmpleados(isDesktop);
       case 3:
-        return _buildReportes();
+  	return buildReportesUI(
+	    context: context,
+	    isDesktop: isDesktop,
+	    rolUsuario: widget.usuario['rol'] ?? '',
+	    fechaInicio: _fechaInicio,
+	    fechaFin: _fechaFin,
+	    onFechaInicioChanged: (d) => setState(() => _fechaInicio = d),
+	    onFechaFinChanged: (d) => setState(() => _fechaFin = d),
+	    filtroEmpresa: _filtroEmpresa,
+	    filtroVendedor: _filtroVendedor,
+	    filtroMetodo: _filtroMetodo,
+	    empresas: _empresas,
+	    vendedores: _vendedores,
+	    metodos: _metodos,
+	    onFiltroEmpresaChanged: (v) => setState(() => _filtroEmpresa = v),
+	    onFiltroVendedorChanged: (v) => setState(() => _filtroVendedor = v),
+	    onFiltroMetodoChanged: (v) => setState(() => _filtroMetodo = v),
+	    cargandoReporte: _cargandoReporte,
+	    onGenerarReporte: _generarReporte,
+	    onNuevaChecada: _nuevaChecada,
+	    reporteActual: _reporteActual,
+	    onExportarCSV: _exportarCSV,
+	    onExportarExcel: _exportarExcel,
+	    onEditarChecada: _editarChecada,
+	    onEliminarChecada: _eliminarChecada,
+	    formatearFechaSimple: _formatearFechaSimple,
+	    formatearFecha: _formatearFecha,
+	  );
       case 4:
         return _buildMiSuscripcion();
       case 5:
