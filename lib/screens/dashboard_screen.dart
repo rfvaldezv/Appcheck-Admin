@@ -268,43 +268,81 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _menuItem(0, Icons.dashboard, 'Resumen'),
             _menuItem(1, Icons.devices, 'Kioskos'),
             
-            // 👇 NUEVOS CATÁLOGOS INDEPENDIENTES 👇
+            // 👇 SUCURSALES Y TURNOS (catálogos) 👇
             ListTile(
               leading: const Icon(Icons.store, color: Colors.white70),
-              title: const Text(
-                'Sucursales',
-                style: TextStyle(color: Colors.white),
-              ),
+              title: const Text('Sucursales', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const CatalogoSucursalesScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const CatalogoSucursalesScreen()),
                 );
               },
             ),
             ListTile(
               leading: const Icon(Icons.schedule, color: Colors.white70),
-              title: const Text(
-                'Turnos',
-                style: TextStyle(color: Colors.white),
-              ),
+              title: const Text('Turnos', style: TextStyle(color: Colors.white)),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const CatalogoTurnosScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const CatalogoTurnosScreen()),
                 );
               },
             ),
-            // 👆 FIN DE NUEVOS CATÁLOGOS 👆
+            // 👆 FIN DE CATÁLOGOS 👆
 
             _menuItem(2, Icons.people, 'Empleados'),
+            
+            // 👇 REPORTES 👇
             _menuItem(3, Icons.file_download, 'Reportes STPS'),
+            ListTile(
+              leading: const Icon(Icons.assessment, color: Colors.white70),
+              title: const Text('Asistencia Diaria', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AsistenciaDiariaScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.timer, color: Colors.white70),
+              title: const Text('Horas Extra', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HorasExtraScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.warning, color: Colors.white70),
+              title: const Text('Retardos', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const RetardosScreen()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_off, color: Colors.white70),
+              title: const Text('Ausencias', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AusenciasScreen()),
+                );
+              },
+            ),
+            // 👆 FIN DE REPORTES 👆
+
             _menuItem(4, Icons.receipt_long, 'Mi Suscripción'),
             _menuItem(5, Icons.fact_check, 'Facturas'),
             const Divider(color: Colors.white24),
